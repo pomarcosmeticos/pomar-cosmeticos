@@ -1,0 +1,1625 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador de Vida Financeira</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#080d1a;--bg2:#0e1529;--card:#131c32;--card2:#182440;
+  --border:#1e2e50;--text:#e0e8f8;--muted:#7a8db0;
+  --accent:#2d8cf0;--accent2:#5ba3f5;
+  --green:#00d68f;--green2:#00b377;
+  --red:#ff4d6a;--red2:#e63e5a;
+  --yellow:#ffb347;--font:'Space Grotesk',sans-serif;--mono:'JetBrains Mono',monospace;--radius:10px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;
+  background-image:radial-gradient(ellipse at 20% 0%,#0f1e3d 0%,transparent 50%),radial-gradient(ellipse at 80% 100%,#0d1a35 0%,transparent 50%)}
+input,select,button{font-family:var(--font);outline:none;border:none}
+.mono{font-family:var(--mono)}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg2)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+#welcome{position:fixed;inset:0;z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#060a14 0%,#0c1628 50%,#0a1020 100%);gap:24px;transition:opacity .5s,visibility .5s}
+#welcome.hidden{opacity:0;visibility:hidden;pointer-events:none}
+#welcome img{max-width:280px;width:80%;filter:drop-shadow(0 4px 24px rgba(45,140,240,.25))}
+#welcome h1{font-size:clamp(1.4rem,4vw,2rem);font-weight:700;letter-spacing:-.5px;color:var(--text)}
+#welcome p{color:var(--muted);font-size:.95rem;max-width:400px;text-align:center;line-height:1.5}
+#welcome .input-group{display:flex;gap:10px;margin-top:8px}
+#welcome input{background:var(--card);border:1px solid var(--border);color:var(--text);padding:12px 18px;border-radius:var(--radius);font-size:1rem;width:260px;transition:border-color .2s}
+#welcome input:focus{border-color:var(--accent)}
+#welcome input::placeholder{color:var(--muted)}
+
+#gameover{position:fixed;inset:0;z-index:1000;display:none;flex-direction:column;align-items:center;justify-content:center;
+  background:rgba(8,2,2,.95);gap:20px;text-align:center}
+#gameover.show{display:flex}
+#gameover h1{font-size:3rem;font-weight:700;color:var(--red);letter-spacing:2px}
+#gameover p{color:var(--muted);max-width:400px;line-height:1.6}
+
+.btn{padding:10px 20px;border-radius:var(--radius);font-size:.85rem;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:var(--accent2);transform:translateY(-1px)}
+.btn-green{background:var(--green2);color:#fff}.btn-green:hover{background:var(--green);transform:translateY(-1px)}
+.btn-red{background:var(--red2);color:#fff}.btn-red:hover{background:var(--red);transform:translateY(-1px)}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}.btn-ghost:hover{color:var(--text);border-color:var(--accent)}
+.btn-sm{padding:6px 14px;font-size:.78rem}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
+.btn-advance{padding:12px 28px;font-size:.95rem;background:linear-gradient(135deg,var(--accent),#1a6fd4);color:#fff;border-radius:var(--radius);font-weight:700;cursor:pointer;transition:all .25s;box-shadow:0 4px 20px rgba(45,140,240,.3)}
+.btn-advance:hover{transform:translateY(-2px);box-shadow:0 6px 28px rgba(45,140,240,.45)}
+
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 20px;position:sticky;top:0;z-index:100;backdrop-filter:blur(10px)}
+.header-inner{max-width:1280px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.logo-area{display:flex;align-items:center;gap:14px}
+.logo-area img{height:36px}
+.header-stats{display:flex;gap:16px;flex-wrap:wrap}
+.h-stat{text-align:center}
+.h-stat .label{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.h-stat .value{font-family:var(--mono);font-size:.9rem;font-weight:600}
+.header-actions{display:flex;gap:8px;align-items:center}
+
+.tabs{display:flex;gap:2px;background:var(--bg2);border-bottom:1px solid var(--border);overflow-x:auto;padding:0 16px;max-width:1280px;margin:0 auto}
+.tab{padding:12px 18px;font-size:.82rem;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .2s}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+.main{max-width:1280px;margin:0 auto;padding:20px}
+.tab-panel{display:none}.tab-panel.active{display:block;animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;transition:border-color .2s}
+.card:hover{border-color:#2a3f6a}
+.card-title{font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.card-title i{color:var(--accent);font-size:.75rem}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:20px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px}
+.stat-card .sc-label{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.stat-card .sc-value{font-family:var(--mono);font-size:1.3rem;font-weight:700}
+.sc-green{color:var(--green)}.sc-red{color:var(--red)}.sc-accent{color:var(--accent)}.sc-yellow{color:var(--yellow)}
+
+.table-wrap{overflow-x:auto;margin-top:10px}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+th{text-align:left;padding:10px 12px;color:var(--muted);font-weight:500;font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)}
+td{padding:10px 12px;border-bottom:1px solid rgba(30,46,80,.4);vertical-align:middle}
+tr:hover td{background:rgba(45,140,240,.03)}
+
+.inp{background:var(--bg);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:6px;font-size:.85rem;width:120px;font-family:var(--mono);transition:border-color .2s}
+.inp:focus{border-color:var(--accent)}
+.inp-sm{padding:6px 10px;font-size:.8rem;width:100px}
+
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.7rem;font-weight:600}
+.badge-green{background:rgba(0,214,143,.12);color:var(--green)}
+.badge-red{background:rgba(255,77,106,.12);color:var(--red)}
+.badge-yellow{background:rgba(255,179,71,.12);color:var(--yellow)}
+.badge-blue{background:rgba(45,140,240,.12);color:var(--accent)}
+
+.sub-tabs{display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap}
+.sub-tab{padding:7px 14px;font-size:.78rem;color:var(--muted);cursor:pointer;border-radius:6px;background:var(--bg2);border:1px solid transparent;transition:all .2s}
+.sub-tab:hover{color:var(--text)}.sub-tab.active{color:var(--accent);border-color:var(--accent);background:rgba(45,140,240,.08)}
+
+.modal-overlay{position:fixed;inset:0;z-index:900;background:rgba(4,6,14,.85);display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+.modal-overlay.show{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:28px;max-width:560px;width:100%;max-height:85vh;overflow-y:auto;animation:fadeUp .25s ease}
+.modal h2{font-size:1.2rem;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.modal h2 i{color:var(--accent)}
+.summary-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(30,46,80,.3);font-size:.88rem}
+.summary-row:last-child{border-bottom:none}
+.summary-row .sr-label{color:var(--muted)}
+.summary-total{display:flex;justify-content:space-between;padding:12px 0;margin-top:8px;border-top:2px solid var(--border);font-weight:700;font-size:1rem}
+
+#toasts{position:fixed;bottom:20px;right:20px;z-index:2000;display:flex;flex-direction:column;gap:8px}
+.toast{padding:12px 18px;border-radius:var(--radius);font-size:.85rem;animation:slideIn .3s ease;max-width:360px;box-shadow:0 8px 30px rgba(0,0,0,.4)}
+.toast-green{background:#0a2e20;border:1px solid var(--green2);color:var(--green)}
+.toast-red{background:#2e0a14;border:1px solid var(--red2);color:var(--red)}
+.toast-yellow{background:#2e2010;border:1px solid #b8860b;color:var(--yellow)}
+.toast-blue{background:#0a1a2e;border:1px solid var(--accent);color:var(--accent2)}
+@keyframes slideIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
+
+.sparkline{display:flex;align-items:flex-end;gap:1px;height:28px}
+.sparkline .bar{width:4px;border-radius:1px;transition:height .3s;min-height:2px}
+
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:768px){
+  .two-col,.three-col{grid-template-columns:1fr}
+  .stat-grid{grid-template-columns:1fr 1fr}
+  .header-stats{display:none}
+  .tabs{padding:0 8px}
+  .main{padding:12px}
+}
+@media(max-width:480px){.stat-grid{grid-template-columns:1fr}}
+.section-gap{margin-top:20px}
+.text-center{text-align:center}
+.mt-2{margin-top:8px}.mt-3{margin-top:12px}.mt-4{margin-top:16px}.mt-5{margin-top:20px}
+.flex-between{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.empty-state{text-align:center;padding:40px 20px;color:var(--muted);font-size:.9rem}
+.empty-state i{font-size:2rem;margin-bottom:12px;display:block;opacity:.4}
+.req-met{color:var(--green)}.req-unmet{color:var(--red)}
+.event-item{padding:10px 14px;background:var(--bg2);border-radius:8px;margin-bottom:6px;font-size:.85rem;border-left:3px solid var(--yellow)}
+
+.chart-container{position:relative;width:100%;height:220px}
+.chart-container canvas{width:100%!important;height:100%!important}
+</style>
+</head>
+<body>
+
+<div id="welcome">
+  <img src="https://raw.githubusercontent.com/Diversa-Academy/Images/a695ce0d51276531db75099a86312e9003ce959c/Completa%20%20Azul%2004%20e%20Azul%2001.png" alt="Logo">
+  <h1>Simulador de Vida Financeira</h1>
+  <p>Gerencie sua carreira, invista seu dinheiro, adquira bens e tome decisões que definirão seu futuro financeiro.</p>
+  <div class="input-group">
+    <input type="text" id="nameInput" placeholder="Seu nome..." maxlength="20" autocomplete="off">
+    <button class="btn btn-primary" onclick="startGame()">Começar</button>
+  </div>
+</div>
+
+<div id="gameover">
+  <i class="fa-solid fa-skull-crossbones" style="font-size:3rem;color:var(--red)"></i>
+  <h1>GAME OVER</h1>
+  <p id="goText"></p>
+  <button class="btn btn-red" onclick="resetGame()"><i class="fa-solid fa-rotate-right"></i> Jogar Novamente</button>
+</div>
+
+<div class="modal-overlay" id="summaryModal">
+  <div class="modal">
+    <h2><i class="fa-solid fa-calendar-check"></i> <span id="summaryTitle"></span></h2>
+    <div id="summaryContent"></div>
+    <div class="mt-4 text-center">
+      <button class="btn btn-primary" onclick="closeSummary()">Entendido</button>
+    </div>
+  </div>
+</div>
+
+<div id="game" style="display:none">
+  <header>
+    <div class="header-inner">
+      <div class="logo-area">
+        <img src="https://raw.githubusercontent.com/Diversa-Academy/Images/a695ce0d51276531db75099a86312e9003ce959c/Completa%20%20Azul%2004%20e%20Azul%2001.png" alt="Logo">
+        <div>
+          <div style="font-size:.75rem;color:var(--muted)">Bem-vindo,</div>
+          <div style="font-weight:600;font-size:.95rem" id="hName"></div>
+        </div>
+      </div>
+      <div class="header-stats">
+        <div class="h-stat"><div class="label">Saldo</div><div class="value mono" id="hBalance"></div></div>
+        <div class="h-stat"><div class="label">Patrimônio</div><div class="value mono" id="hNetWorth"></div></div>
+        <div class="h-stat"><div class="label">SELIC</div><div class="value mono" id="hSelic"></div></div>
+        <div class="h-stat"><div class="label">Inflação</div><div class="value mono" id="hInflation"></div></div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-ghost btn-sm" id="resetBtn" onclick="confirmReset()"><i class="fa-solid fa-rotate-right"></i> Resetar</button>
+        <button class="btn-advance" id="advanceBtn" onclick="advanceMonth()"><i class="fa-solid fa-forward"></i> Avançar Mês</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="tabs" id="tabBar"></div>
+
+  <div class="main">
+    <div class="tab-panel" id="panel-dashboard"></div>
+    <div class="tab-panel" id="panel-carreira"></div>
+    <div class="tab-panel" id="panel-investimentos"></div>
+    <div class="tab-panel" id="panel-bens"></div>
+    <div class="tab-panel" id="panel-emprestimos"></div>
+  </div>
+</div>
+
+<div id="toasts"></div>
+
+<script>
+/* ============================================================
+   DADOS ESTÁTICOS DO JOGO
+   ============================================================ */
+const JOBS = [
+  { id:'desempregado', title:'Desempregado', salary:0, req:{month:0,balance:0} },
+  { id:'freelancer', title:'Freelancer', salary:1800, req:{month:0,balance:0} },
+  { id:'auxiliar', title:'Auxiliar Administrativo', salary:2400, req:{month:2,balance:0} },
+  { id:'analista_jr', title:'Analista Júnior', salary:4000, req:{month:6,balance:5000} },
+  { id:'analista_sr', title:'Analista Sênior', salary:7000, req:{month:12,balance:20000} },
+  { id:'gerente', title:'Gerente de Área', salary:13000, req:{month:24,balance:60000} },
+  { id:'diretor', title:'Diretor', salary:24000, req:{month:36,balance:180000} },
+  { id:'vp', title:'Vice-Presidente', salary:48000, req:{month:60,balance:500000} },
+  { id:'ceo', title:'CEO', salary:90000, req:{month:84,balance:1500000} }
+];
+
+const FIXED_INCOME = [
+  { id:'lci_pos6', name:'LCI Pós-fixada 6 meses', type:'pos', spread:-0.3, locked:6 },
+  { id:'lca_pos12', name:'LCA Pós-fixada 12 meses', type:'pos', spread:-0.4, locked:12 },
+  { id:'cri_pre6', name:'CRI Prefixada 6 meses', type:'pre', rate:11.5, locked:6 },
+  { id:'cra_pre12', name:'CRA Prefixada 12 meses', type:'pre', rate:12.8, locked:12 }
+];
+
+const TREASURY = [
+  { id:'tesouro_selic', name:'Tesouro Selic', type:'selic', spread:-0.15, locked:0, liquid:true },
+  { id:'tesouro_ipca29', name:'Tesouro IPCA+ 2029', type:'ipca', fixedRate:5.5, locked:60 },
+  { id:'tesouro_ipca35', name:'Tesouro IPCA+ 2035', type:'ipca', fixedRate:6.0, locked:120 }
+];
+
+const FIIS = [
+  { ticker:'HGLG11', name:'CSHG Logística', basePrice:158, dy:0.0085, vol:0.02 },
+  { ticker:'MXRF11', name:'Maxi Renda', basePrice:10.5, dy:0.012, vol:0.015 },
+  { ticker:'XPML11', name:'XP Malls', basePrice:98, dy:0.007, vol:0.025 },
+  { ticker:'KNRI11', name:'Kinea Renda', basePrice:138, dy:0.0065, vol:0.02 }
+];
+
+const STOCKS = [
+  { ticker:'PETR4', name:'Petrobras PN', basePrice:36.5, vol:0.06 },
+  { ticker:'VALE3', name:'Vale ON', basePrice:62, vol:0.055 },
+  { ticker:'MGLU3', name:'Magazine Luiza', basePrice:2.1, vol:0.12 },
+  { ticker:'WEGE3', name:'WEG ON', basePrice:35, vol:0.05 },
+  { ticker:'AAPL34', name:'Apple BDR', basePrice:180, vol:0.04 }
+];
+
+const CRYPTOS = [
+  { ticker:'BTC', name:'Bitcoin', basePrice:350000, vol:0.25 },
+  { ticker:'ETH', name:'Ethereum', basePrice:18500, vol:0.22 },
+  { ticker:'SOL', name:'Solana', basePrice:1200, vol:0.30 }
+];
+
+const CARS = [
+  { id:'mobi', name:'Fiat Mobi', price:55000, cost:300, dep:0.015 },
+  { id:'hb20', name:'Hyundai HB20', price:85000, cost:450, dep:0.012 },
+  { id:'corolla', name:'Toyota Corolla', price:145000, cost:650, dep:0.01 },
+  { id:'compass', name:'Jeep Compass', price:175000, cost:800, dep:0.01 },
+  { id:'bmw320', name:'BMW 320i', price:320000, cost:1500, dep:0.008 }
+];
+
+const PROPERTIES = [
+  { id:'kitnet', name:'Kitnet', price:80000, rent:800, app:0.003 },
+  { id:'ap1q', name:'Apartamento 1 Quarto', price:250000, rent:1500, app:0.005 },
+  { id:'ap2q', name:'Apartamento 2 Quartos', price:400000, rent:2200, app:0.005 },
+  { id:'ap3q', name:'Apartamento 3 Quartos', price:650000, rent:3200, app:0.006 },
+  { id:'casa', name:'Casa em Condomínio', price:900000, rent:4500, app:0.006 },
+  { id:'mansao', name:'Mansão de Luxo', price:2500000, rent:12000, app:0.007 }
+];
+
+const LOAN_OPTIONS = [
+  { amount:10000, label:'R$ 10.000' },
+  { amount:25000, label:'R$ 25.000' },
+  { amount:50000, label:'R$ 50.000' },
+  { amount:100000, label:'R$ 100.000' }
+];
+const LOAN_TERMS = [12, 24, 36];
+
+const EVENTS = [
+  { text:'O cano da casa estourou!', cost:3000 },
+  { text:'Bateram no seu carro. Pague a franquia.', cost:4500 },
+  { text:'Problema de saúde na família.', cost:6000 },
+  { text:'Celular quebrou sem garantia.', cost:2500 },
+  { text:'Multa de trânsito inesperada.', cost:800 },
+  { text:'Gasto com dentista emergencial.', cost:1500 },
+  { text:'Reparo urgente no carro.', cost:3500 },
+  { text:'Conta de luz muito alta este mês.', cost:1200 },
+  { text:'Vazamento de gás — reparo emergencial.', cost:2000 },
+  { text:'Substituição de eletrodoméstico queimado.', cost:2800 },
+  { text:'Dedução fiscal inesperada.', cost:1800 },
+  { text:'Problema no encanamento do prédio.', cost:2200 }
+];
+
+const TABS = [
+  { id:'dashboard', label:'Geral', icon:'fa-chart-line' },
+  { id:'carreira', label:'Carreira & Negócios', icon:'fa-briefcase' },
+  { id:'investimentos', label:'Investimentos', icon:'fa-chart-pie' },
+  { id:'bens', label:'Bens', icon:'fa-house-car' },
+  { id:'emprestimos', label:'Empréstimos', icon:'fa-landmark' }
+];
+
+const INV_SUBTABS = [
+  { id:'reserva', label:'Reserva' },
+  { id:'rendafixa', label:'Renda Fixa' },
+  { id:'tesouro', label:'Tesouro' },
+  { id:'fiis', label:'FIIs' },
+  { id:'acoes', label:'Ações' },
+  { id:'cripto', label:'Cripto' }
+];
+
+/* ============================================================
+   ESTADO DO JOGO
+   ============================================================ */
+let G = null;
+let activeTab = 'dashboard';
+let activeInvTab = 'reserva';
+let resetPending = false;
+
+// Instâncias dos gráficos Chart.js
+let chartNW = null;
+let chartMacro = null;
+
+function newGame(name) {
+  const prices = {};
+  const history = {};
+  [...FIIS,...STOCKS,...CRYPTOS].forEach(a => {
+    prices[a.ticker] = a.basePrice;
+    history[a.ticker] = [a.basePrice];
+  });
+  return {
+    name, month:1, balance:5000,
+    selic:10.5, inflation:4.5,
+    job:{ ...JOBS[0] },
+    company:null,
+    inv:{ savings:0, fixedIncome:[], treasurySelic:0, treasuryIpca:[], fiis:{}, stocks:{}, crypto:{} },
+    prices, history,
+    cars:[], properties:[],
+    loans:[], events:[],
+    livingInProp:null,
+    peakNetWorth:5000,
+    expenses:{ rent:1500, food:800, transport:400, insurance:200, utilities:300 },
+    // Históricos para gráficos
+    histNW:[5000], histSelic:[10.5], histInflation:[4.5], histMonths:['1/2024']
+  };
+}
+
+/* ============================================================
+   UTILITÁRIOS
+   ============================================================ */
+const fmt = n => {
+  if(n==null) return 'R$ 0';
+  const abs = Math.abs(n);
+  const s = abs >= 1e6 ? (abs/1e6).toFixed(2)+'M' : abs >= 1e3 ? (abs/1e3).toFixed(1)+'K' : abs.toFixed(2);
+  return (n<0?'-':'')+'R$ '+s;
+};
+const fmtFull = n => n.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const fmtN = n => n.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:2});
+const clamp = (v,min,max) => Math.max(min,Math.min(max,v));
+const rand = (a,b) => a + Math.random()*(b-a);
+const randInt = (a,b) => Math.floor(rand(a,b+1));
+const pct = (v) => (v>=0?'+':'')+fmtN(v)+'%';
+const monthLabel = m => { const y=2024+Math.floor((m-1)/12); const mo=((m-1)%12)+1; return mo+'/'+y; };
+
+function canTakeJob(j) {
+  return G.month >= j.req.month && G.balance >= j.req.balance;
+}
+
+function calcNetWorth() {
+  let nw = G.balance;
+  nw += G.inv.savings;
+  nw += G.inv.treasurySelic;
+  G.inv.fixedIncome.forEach(i => nw += i.currentValue);
+  G.inv.treasuryIpca.forEach(i => nw += i.currentValue);
+  for(const t in G.inv.fiis) if(G.inv.fiis[t].shares>0) nw += G.inv.fiis[t].shares * (G.prices[t]||0);
+  for(const t in G.inv.stocks) if(G.inv.stocks[t].shares>0) nw += G.inv.stocks[t].shares * (G.prices[t]||0);
+  for(const t in G.inv.crypto) if(G.inv.crypto[t].shares>0) nw += G.inv.crypto[t].shares * (G.prices[t]||0);
+  G.cars.forEach(c => nw += c.currentValue);
+  G.properties.forEach(p => nw += p.currentValue);
+  G.loans.forEach(l => nw -= l.remaining);
+  return nw;
+}
+
+function monthlyExpenses() {
+  let tot = G.expenses.food + G.expenses.transport + G.expenses.insurance + G.expenses.utilities;
+  if(!G.livingInProp) tot += G.expenses.rent;
+  G.cars.forEach(c => tot += c.cost);
+  return tot;
+}
+
+function monthlyIncome() {
+  let inc = 0;
+  if(G.job && G.job.salary>0) inc += G.job.salary;
+  if(G.company && G.company.months > 6) inc += Math.max(0, G.company.lastProfit||0);
+  G.properties.forEach(p => { if(p.isRented) inc += p.rent; });
+  return inc;
+}
+
+function sparklineHTML(hist, color) {
+  if(!hist || hist.length<2) return '';
+  const mn = Math.min(...hist), mx = Math.max(...hist);
+  const range = mx-mn || 1;
+  return '<div class="sparkline">' + hist.map(v => {
+    const h = 4 + ((v-mn)/range)*24;
+    return `<div class="bar" style="height:${h}px;background:${color}"></div>`;
+  }).join('') + '</div>';
+}
+
+/* ============================================================
+   PERSISTÊNCIA
+   ============================================================ */
+function saveGame() {
+  try { localStorage.setItem('finSim', JSON.stringify(G)); } catch(e){}
+}
+function loadGame() {
+  try {
+    const d = localStorage.getItem('finSim');
+    if(d) { G = JSON.parse(d); return true; }
+  } catch(e){}
+  return false;
+}
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+function toast(msg, type='blue') {
+  const el = document.createElement('div');
+  el.className = 'toast toast-'+type;
+  el.innerHTML = msg;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(()=>el.remove(),300); },3500);
+}
+
+/* ============================================================
+   GRÁFICOS (Chart.js)
+   ============================================================ */
+// Configuração visual global do Chart.js
+Chart.defaults.color = '#7a8db0';
+Chart.defaults.borderColor = 'rgba(30,46,80,0.5)';
+Chart.defaults.font.family = "'Space Grotesk', sans-serif";
+Chart.defaults.font.size = 11;
+
+function buildCharts() {
+  // Destrói instâncias anteriores para recriar limpo
+  if(chartNW) { chartNW.destroy(); chartNW = null; }
+  if(chartMacro) { chartMacro.destroy(); chartMacro = null; }
+
+  const nwCtx = document.getElementById('chartNetWorth');
+  const mcCtx = document.getElementById('chartMacro');
+  if(!nwCtx || !mcCtx) return;
+
+  // Dados do patrimônio líquido
+  const nwData = G.histNW || [];
+  const nwLabels = G.histMonths || [];
+
+  // Gráfico de Patrimônio Líquido
+  chartNW = new Chart(nwCtx, {
+    type: 'line',
+    data: {
+      labels: nwLabels,
+      datasets: [{
+        label: 'Patrimônio Líquido',
+        data: nwData,
+        borderColor: '#00d68f',
+        backgroundColor: function(context) {
+          const chart = context.chart;
+          const {ctx, chartArea} = chart;
+          if(!chartArea) return 'rgba(0,214,143,0.1)';
+          const grad = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+          grad.addColorStop(0, 'rgba(0,214,143,0.25)');
+          grad.addColorStop(1, 'rgba(0,214,143,0.01)');
+          return grad;
+        },
+        fill: true,
+        tension: 0.35,
+        borderWidth: 2.5,
+        pointRadius: nwData.length > 30 ? 0 : 3,
+        pointHoverRadius: 5,
+        pointBackgroundColor: '#00d68f',
+        pointBorderColor: '#131c32',
+        pointBorderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode:'index', intersect:false },
+      plugins: {
+        legend: { display:false },
+        tooltip: {
+          backgroundColor: '#1a2440',
+          borderColor: '#2d8cf0',
+          borderWidth: 1,
+          titleColor: '#e0e8f8',
+          bodyColor: '#e0e8f8',
+          padding: 12,
+          displayColors: false,
+          callbacks: {
+            title: (items) => 'Mês ' + items[0].label,
+            label: (item) => 'Patrimônio: ' + fmtFull(item.raw)
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display:false },
+          ticks: { maxTicksLimit:12, font:{size:10} }
+        },
+        y: {
+          grid: { color:'rgba(30,46,80,0.3)' },
+          ticks: {
+            font:{size:10, family:"'JetBrains Mono', monospace"},
+            callback: v => fmt(v)
+          }
+        }
+      }
+    }
+  });
+
+  // Gráfico de Macroeconomia (SELIC + Inflação)
+  const selicData = G.histSelic || [];
+  const inflData = G.histInflation || [];
+
+  chartMacro = new Chart(mcCtx, {
+    type: 'line',
+    data: {
+      labels: nwLabels,
+      datasets: [
+        {
+          label: 'SELIC (% a.a.)',
+          data: selicData,
+          borderColor: '#ffb347',
+          backgroundColor: 'rgba(255,179,71,0.08)',
+          fill: true,
+          tension: 0.35,
+          borderWidth: 2.5,
+          pointRadius: selicData.length > 30 ? 0 : 3,
+          pointHoverRadius: 5,
+          pointBackgroundColor: '#ffb347',
+          pointBorderColor: '#131c32',
+          pointBorderWidth: 2
+        },
+        {
+          label: 'Inflação (% a.a.)',
+          data: inflData,
+          borderColor: '#ff4d6a',
+          backgroundColor: 'rgba(255,77,106,0.08)',
+          fill: true,
+          tension: 0.35,
+          borderWidth: 2.5,
+          pointRadius: inflData.length > 30 ? 0 : 3,
+          pointHoverRadius: 5,
+          pointBackgroundColor: '#ff4d6a',
+          pointBorderColor: '#131c32',
+          pointBorderWidth: 2
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode:'index', intersect:false },
+      plugins: {
+        legend: {
+          position:'top',
+          align:'end',
+          labels: { boxWidth:12, boxHeight:3, borderRadius:2, useBorderRadius:true, padding:16, font:{size:11} }
+        },
+        tooltip: {
+          backgroundColor: '#1a2440',
+          borderColor: '#2d8cf0',
+          borderWidth: 1,
+          titleColor: '#e0e8f8',
+          bodyColor: '#e0e8f8',
+          padding: 12,
+          callbacks: {
+            title: (items) => 'Mês ' + items[0].label,
+            label: (item) => item.dataset.label + ': ' + fmtN(item.raw) + '%'
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display:false },
+          ticks: { maxTicksLimit:12, font:{size:10} }
+        },
+        y: {
+          grid: { color:'rgba(30,46,80,0.3)' },
+          ticks: {
+            font:{size:10, family:"'JetBrains Mono', monospace"},
+            callback: v => v.toFixed(1) + '%'
+          }
+        }
+      }
+    }
+  });
+}
+
+/* ============================================================
+   RENDERIZAÇÃO
+   ============================================================ */
+function render() {
+  if(!G) return;
+  const nw = calcNetWorth();
+  if(nw > G.peakNetWorth) G.peakNetWorth = nw;
+
+  document.getElementById('hName').textContent = G.name;
+  const hBal = document.getElementById('hBalance');
+  hBal.textContent = fmtFull(G.balance);
+  hBal.style.color = G.balance>=0?'var(--green)':'var(--red)';
+  document.getElementById('hNetWorth').textContent = fmtFull(nw);
+  document.getElementById('hSelic').textContent = fmtN(G.selic)+'%';
+  document.getElementById('hInflation').textContent = fmtN(G.inflation)+'%';
+
+  document.getElementById('tabBar').innerHTML = TABS.map(t =>
+    `<div class="tab ${activeTab===t.id?'active':''}" onclick="switchTab('${t.id}')"><i class="fa-solid ${t.icon}" style="margin-right:5px"></i>${t.label}</div>`
+  ).join('');
+
+  renderDashboard(nw);
+  renderCarreira();
+  renderInvestimentos();
+  renderBens();
+  renderEmprestimos();
+
+  TABS.forEach(t => {
+    document.getElementById('panel-'+t.id).classList.toggle('active', activeTab===t.id);
+  });
+
+  // Constrói/atualiza gráficos quando o dashboard está visível
+  if(activeTab === 'dashboard') {
+    requestAnimationFrame(() => buildCharts());
+  }
+}
+
+function switchTab(id) { activeTab = id; render(); }
+
+// ----- DASHBOARD -----
+function renderDashboard(nw) {
+  const inc = monthlyIncome();
+  const exp = monthlyExpenses();
+  const rentFree = G.livingInProp ? '<span class="badge badge-green">Sem aluguel</span>' : fmtFull(G.expenses.rent);
+
+  let invTotal = G.inv.savings + G.inv.treasurySelic;
+  G.inv.fixedIncome.forEach(i => invTotal += i.currentValue);
+  G.inv.treasuryIpca.forEach(i => invTotal += i.currentValue);
+  for(const t in G.inv.fiis) invTotal += G.inv.fiis[t].shares * (G.prices[t]||0);
+  for(const t in G.inv.stocks) invTotal += G.inv.stocks[t].shares * (G.prices[t]||0);
+  for(const t in G.inv.crypto) invTotal += G.inv.crypto[t].shares * (G.prices[t]||0);
+
+  const allocParts = [];
+  if(invTotal>0){
+    const s=G.inv.savings, ts=G.inv.treasurySelic;
+    let rf=0; G.inv.fixedIncome.forEach(i=>rf+=i.currentValue);
+    let tip=0; G.inv.treasuryIpca.forEach(i=>tip+=i.currentValue);
+    let fii=0; for(const t in G.inv.fiis) fii+=G.inv.fiis[t].shares*(G.prices[t]||0);
+    let stk=0; for(const t in G.inv.stocks) stk+=G.inv.stocks[t].shares*(G.prices[t]||0);
+    let cri=0; for(const t in G.inv.crypto) cri+=G.inv.crypto[t].shares*(G.prices[t]||0);
+    if(s>0) allocParts.push({label:'Poupança',pct:s/invTotal*100,color:'var(--accent)'});
+    if(rf>0) allocParts.push({label:'Renda Fixa',pct:rf/invTotal*100,color:'#8b5cf6'});
+    if(ts>0) allocParts.push({label:'Tesouro Selic',pct:ts/invTotal*100,color:'#06b6d4'});
+    if(tip>0) allocParts.push({label:'Tesouro IPCA+',pct:tip/invTotal*100,color:'#0ea5e9'});
+    if(fii>0) allocParts.push({label:'FIIs',pct:fii/invTotal*100,color:'var(--green)'});
+    if(stk>0) allocParts.push({label:'Ações',pct:stk/invTotal*100,color:'var(--yellow)'});
+    if(cri>0) allocParts.push({label:'Cripto',pct:cri/invTotal*100,color:'#f97316'});
+  }
+
+  const allocHTML = allocParts.length ? allocParts.map(a =>
+    `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+      <div style="width:12px;height:12px;border-radius:3px;background:${a.color}"></div>
+      <span style="font-size:.82rem;flex:1">${a.label}</span>
+      <span class="mono" style="font-size:.82rem;color:var(--muted)">${a.pct.toFixed(1)}%</span>
+    </div>`
+  ).join('') : '<div class="empty-state" style="padding:20px"><i class="fa-solid fa-piggy-bank"></i>Nenhum investimento ainda</div>';
+
+  const evHTML = G.events.length ? G.events.slice(-5).reverse().map(e =>
+    `<div class="event-item">${e}</div>`
+  ).join('') : '<div class="empty-state" style="padding:20px"><i class="fa-solid fa-shield-halved"></i>Nenhum evento até agora</div>';
+
+  const idealReserve = monthlyExpenses() * 6;
+  const reservePct = idealReserve > 0 ? Math.min(100, G.inv.savings / idealReserve * 100) : 0;
+  const reserveColor = reservePct >= 100 ? 'var(--green)' : reservePct >= 50 ? 'var(--yellow)' : 'var(--red)';
+
+  // Variação percentual do patrimônio
+  const hist = G.histNW || [];
+  const prevNW = hist.length >= 2 ? hist[hist.length-2] : nw;
+  const nwChange = prevNW !== 0 ? ((nw - prevNW)/Math.abs(prevNW)*100) : 0;
+  const nwChangeColor = nwChange >= 0 ? 'var(--green)' : 'var(--red)';
+
+  document.getElementById('panel-dashboard').innerHTML = `
+    <div class="stat-grid">
+      <div class="stat-card"><div class="sc-label"><i class="fa-solid fa-wallet"></i> Saldo em Conta</div><div class="sc-value ${G.balance>=0?'sc-green':'sc-red'}">${fmtFull(G.balance)}</div></div>
+      <div class="stat-card"><div class="sc-label"><i class="fa-solid fa-building-columns"></i> Patrimônio Líquido</div><div class="sc-value sc-accent">${fmtFull(nw)} <span style="font-size:.7rem;color:${nwChangeColor}">${pct(nwChange)}</span></div></div>
+      <div class="stat-card"><div class="sc-label"><i class="fa-solid fa-arrow-trend-up"></i> Renda Mensal</div><div class="sc-value sc-green">${fmtFull(inc)}</div></div>
+      <div class="stat-card"><div class="sc-label"><i class="fa-solid fa-arrow-trend-down"></i> Despesas Mensais</div><div class="sc-value sc-red">${fmtFull(exp)}</div></div>
+    </div>
+
+    <!-- GRÁFICOS -->
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-chart-area"></i> Evolução do Patrimônio</div>
+        <div class="chart-container"><canvas id="chartNetWorth"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-chart-bar"></i> Macroeconomia (SELIC x Inflação)</div>
+        <div class="chart-container"><canvas id="chartMacro"></canvas></div>
+      </div>
+    </div>
+
+    <div class="two-col section-gap">
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-shield-halved"></i> Reserva de Emergência</div>
+        <div style="display:flex;justify-content:space-between;font-size:.85rem;margin-bottom:8px">
+          <span>${fmtFull(G.inv.savings)} / ${fmtFull(idealReserve)}</span>
+          <span style="color:${reserveColor}" class="mono">${reservePct.toFixed(0)}%</span>
+        </div>
+        <div style="height:8px;background:var(--bg);border-radius:4px;overflow:hidden">
+          <div style="height:100%;width:${reservePct}%;background:${reserveColor};border-radius:4px;transition:width .5s"></div>
+        </div>
+        <div style="font-size:.75rem;color:var(--muted);margin-top:6px">Meta: 6 meses de despesas</div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-chart-pie"></i> Alocação de Investimentos</div>
+        ${invTotal > 0 ? `<div style="font-size:.82rem;color:var(--muted);margin-bottom:10px">Total investido: <span class="mono" style="color:var(--text)">${fmtFull(invTotal)}</span></div>` : ''}
+        ${allocHTML}
+      </div>
+    </div>
+
+    <div class="two-col section-gap">
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-receipt"></i> Resumo de Despesas Fixas</div>
+        <table><tbody>
+          <tr><td>Aluguel</td><td class="mono" style="text-align:right">${rentFree}</td></tr>
+          <tr><td>Alimentação</td><td class="mono" style="text-align:right;color:var(--red)">${fmtFull(G.expenses.food)}</td></tr>
+          <tr><td>Transporte</td><td class="mono" style="text-align:right;color:var(--red)">${fmtFull(G.expenses.transport)}</td></tr>
+          <tr><td>Seguros</td><td class="mono" style="text-align:right;color:var(--red)">${fmtFull(G.expenses.insurance)}</td></tr>
+          <tr><td>Contas (Água/Luz/Internet)</td><td class="mono" style="text-align:right;color:var(--red)">${fmtFull(G.expenses.utilities)}</td></tr>
+          ${G.cars.length ? G.cars.map(c=>`<tr><td>Manut. ${c.name}</td><td class="mono" style="text-align:right;color:var(--red)">${fmtFull(c.cost)}</td></tr>`).join('') : ''}
+        </tbody></table>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-bolt"></i> Eventos Recentes</div>
+        ${evHTML}
+      </div>
+    </div>
+
+    <div class="card section-gap">
+      <div class="card-title"><i class="fa-solid fa-gauge-high"></i> Indicadores Macroeconômicos</div>
+      <div class="stat-grid" style="margin-bottom:0">
+        <div class="stat-card"><div class="sc-label">Taxa SELIC (a.a.)</div><div class="sc-value sc-yellow mono">${fmtN(G.selic)}%</div></div>
+        <div class="stat-card"><div class="sc-label">Inflação (a.a.)</div><div class="sc-value sc-red mono">${fmtN(G.inflation)}%</div></div>
+        <div class="stat-card"><div class="sc-label">Meses Jogados</div><div class="sc-value sc-accent mono">${G.month}</div></div>
+        <div class="stat-card"><div class="sc-label">Pico Patrimonial</div><div class="sc-value sc-green mono">${fmtFull(G.peakNetWorth)}</div></div>
+      </div>
+    </div>
+  `;
+}
+
+// ----- CARREIRA -----
+function renderCarreira() {
+  const jobHTML = G.job.id !== 'desempregado'
+    ? `<div class="card"><div class="card-title"><i class="fa-solid fa-id-badge"></i> Emprego Atual</div>
+       <div style="font-size:1.2rem;font-weight:600;margin-bottom:4px">${G.job.title}</div>
+       <div class="mono" style="color:var(--green);font-size:1.1rem">${fmtFull(G.job.salary)}/mês</div></div>`
+    : `<div class="card" style="border-color:var(--red2)"><div class="card-title"><i class="fa-solid fa-user-slash"></i> Desempregado</div>
+       <p style="color:var(--muted);font-size:.9rem">Procure um emprego abaixo ou sobreviva de suas reservas.</p></div>`;
+
+  const jobsHTML = JOBS.filter(j=>j.id!=='desempregado').map(j => {
+    const met = canTakeJob(j);
+    const isCurrent = G.job.id === j.id;
+    return `<tr style="${isCurrent?'background:rgba(45,140,240,.08)':''}">
+      <td style="font-weight:500">${j.title}</td>
+      <td class="mono" style="color:var(--green)">${fmtFull(j.salary)}</td>
+      <td><span class="${met?'req-met':'req-unmet'}" style="font-size:.78rem">${j.req.month>0?j.req.month+' meses':'-'}${j.req.balance>0?' / '+fmt(j.req.balance):''}</span></td>
+      <td>${isCurrent ? '<span class="badge badge-blue">Atual</span>' : `<button class="btn btn-sm ${met?'btn-green':'btn-ghost'}" ${met?`onclick="takeJob('${j.id}')"`:'disabled'}>Candidate-se</button>`}</td>
+    </tr>`;
+  }).join('');
+
+  let companyHTML = '';
+  if(G.company) {
+    const phase = G.company.months <= 6 ? 'Maturação' : 'Ativa';
+    const phaseColor = G.company.months <= 6 ? 'var(--yellow)' : 'var(--green)';
+    companyHTML = `<div class="card section-gap">
+      <div class="card-title"><i class="fa-solid fa-building"></i> Minha Empresa</div>
+      <div class="flex-between"><span>Fase:</span><span style="color:${phaseColor};font-weight:600">${phase} (${G.company.months} meses)</span></div>
+      ${G.company.months > 6 ? `<div class="flex-between mt-2"><span>Último lucro:</span><span class="mono ${(G.company.lastProfit||0)>=0?'sc-green':'sc-red'}">${fmtFull(G.company.lastProfit||0)}</span></div>` : `<div class="mt-2" style="font-size:.82rem;color:var(--yellow)">Custo de maturação: ${fmtFull(5000)}/mês por mais ${6-G.company.months} meses</div>`}
+      <div class="mt-3"><button class="btn btn-red btn-sm" onclick="closeCompany()"><i class="fa-solid fa-xmark"></i> Fechar Empresa</button></div>
+    </div>`;
+  } else {
+    companyHTML = `<div class="card section-gap">
+      <div class="card-title"><i class="fa-solid fa-rocket"></i> Empreendedorismo</div>
+      <p style="font-size:.85rem;color:var(--muted);margin-bottom:12px">Abra sua própria empresa. Investimento inicial: <strong style="color:var(--text)">${fmtFull(100000)}</strong>. Nos primeiros 6 meses há custos de maturação. Após isso, a empresa gera lucros variáveis.</p>
+      <button class="btn btn-primary btn-sm" ${G.balance>=100000?`onclick="openCompany()"`:'disabled'}><i class="fa-solid fa-door-open"></i> Abrir Empresa</button>
+    </div>`;
+  }
+
+  document.getElementById('panel-carreira').innerHTML = `
+    ${jobHTML}
+    <div class="card section-gap">
+      <div class="card-title"><i class="fa-solid fa-list-check"></i> Vagas Disponíveis</div>
+      <div class="table-wrap"><table><thead><tr><th>Cargo</th><th>Salário</th><th>Requisitos</th><th>Ação</th></tr></thead><tbody>${jobsHTML}</tbody></table></div>
+    </div>
+    ${companyHTML}
+  `;
+}
+
+// ----- INVESTIMENTOS -----
+function renderInvestimentos() {
+  const subHTML = INV_SUBTABS.map(s =>
+    `<div class="sub-tab ${activeInvTab===s.id?'active':''}" onclick="activeInvTab='${s.id}';render()">${s.label}</div>`
+  ).join('');
+
+  let content = '';
+  switch(activeInvTab) {
+    case 'reserva': content = renderReserva(); break;
+    case 'rendafixa': content = renderRendaFixa(); break;
+    case 'tesouro': content = renderTesouro(); break;
+    case 'fiis': content = renderVar(FIIS, 'fiis', true); break;
+    case 'acoes': content = renderVar(STOCKS, 'stocks', false); break;
+    case 'cripto': content = renderVar(CRYPTOS, 'crypto', false); break;
+  }
+
+  document.getElementById('panel-investimentos').innerHTML = `<div class="sub-tabs">${subHTML}</div>${content}`;
+}
+
+function renderReserva() {
+  const rate = (0.06/12*100);
+  const monthlyReturn = G.inv.savings * rate / 100;
+  return `<div class="card">
+    <div class="card-title"><i class="fa-solid fa-piggy-bank"></i> Reserva de Emergência (Poupança)</div>
+    <div class="stat-grid" style="margin-bottom:16px">
+      <div class="stat-card"><div class="sc-label">Saldo</div><div class="sc-value sc-green mono">${fmtFull(G.inv.savings)}</div></div>
+      <div class="stat-card"><div class="sc-label">Rendimento Mensal</div><div class="sc-value sc-accent mono">${fmtN(rate)}% (${fmtFull(monthlyReturn)})</div></div>
+    </div>
+    <p style="font-size:.82rem;color:var(--muted);margin-bottom:14px">Liquidez imediata. Rendimento de 6% a.a. Ideal para sua reserva de emergência.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <input class="inp" type="number" id="savDep" placeholder="Valor..." min="0" step="100">
+      <button class="btn btn-green btn-sm" onclick="depositSavings()"><i class="fa-solid fa-plus"></i> Depositar</button>
+      <input class="inp" type="number" id="savWit" placeholder="Valor..." min="0" step="100">
+      <button class="btn btn-red btn-sm" onclick="withdrawSavings()"><i class="fa-solid fa-minus"></i> Sacar</button>
+    </div>
+  </div>`;
+}
+
+function renderRendaFixa() {
+  const availHTML = FIXED_INCOME.map(fi => {
+    let rateStr = '';
+    if(fi.type==='pos') rateStr = `${fmtN(G.selic + fi.spread)}% a.a. (CDI ${fmtN(G.selic)}% ${fi.spread>0?'+':' '}${fmtN(fi.spread)}%)`;
+    else rateStr = `${fmtN(fi.rate)}% a.a. (prefixada)`;
+    return `<tr>
+      <td style="font-weight:500">${fi.name}</td>
+      <td class="mono" style="font-size:.8rem">${rateStr}</td>
+      <td>${fi.locked>0?`<span class="badge badge-yellow">${fi.locked} meses</span>`:'<span class="badge badge-green">Líquido</span>'}</td>
+      <td><div style="display:flex;gap:4px"><input class="inp inp-sm" type="number" id="fi_${fi.id}" placeholder="R$" min="0" step="1000">
+      <button class="btn btn-green btn-sm" onclick="buyFixedIncome('${fi.id}')">Aplicar</button></div></td>
+    </tr>`;
+  }).join('');
+
+  const activeHTML = G.inv.fixedIncome.length ? G.inv.fixedIncome.map(inv =>
+    `<tr>
+      <td style="font-weight:500">${inv.name}</td>
+      <td class="mono">${fmtFull(inv.invested)}</td>
+      <td class="mono sc-green">${fmtFull(inv.currentValue)}</td>
+      <td>${inv.monthsRemaining>0?`<span class="badge badge-yellow">${inv.monthsRemaining} meses</span>`:'<span class="badge badge-green">Vencido</span>'}</td>
+      <td class="mono sc-green">${fmtFull(inv.currentValue - inv.invested)}</td>
+    </tr>`
+  ).join('') : '';
+
+  return `<div class="card">
+    <div class="card-title"><i class="fa-solid fa-file-contract"></i> Renda Fixa Disponível</div>
+    <div class="table-wrap"><table><thead><tr><th>Produto</th><th>Taxa</th><th>Liquidez</th><th>Ação</th></tr></thead><tbody>${availHTML}</tbody></table></div>
+  </div>
+  ${G.inv.fixedIncome.length ? `<div class="card section-gap"><div class="card-title"><i class="fa-solid fa-lock"></i> Investimentos Ativos</div>
+    <div class="table-wrap"><table><thead><tr><th>Produto</th><th>Aplicado</th><th>Valor Atual</th><th>Vencimento</th><th>Rendimento</th></tr></thead><tbody>${activeHTML}</tbody></table></div></div>` : ''}`;
+}
+
+function renderTesouro() {
+  const selicRate = G.selic - 0.15;
+  const selicMonthly = G.inv.treasurySelic * (selicRate/12/100);
+  let html = `<div class="card">
+    <div class="card-title"><i class="fa-solid fa-landmark-flag"></i> Tesouro Selic (Líquido)</div>
+    <div class="stat-grid" style="margin-bottom:14px">
+      <div class="stat-card"><div class="sc-label">Saldo</div><div class="sc-value sc-green mono">${fmtFull(G.inv.treasurySelic)}</div></div>
+      <div class="stat-card"><div class="sc-label">Rendimento Mensal</div><div class="sc-value sc-accent mono">${fmtN(selicRate)}% (${fmtFull(selicMonthly)})</div></div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <input class="inp" type="number" id="tsDep" placeholder="Valor..." min="0" step="1000">
+      <button class="btn btn-green btn-sm" onclick="depositTreasurySelic()"><i class="fa-solid fa-plus"></i> Comprar</button>
+      <input class="inp" type="number" id="tsWit" placeholder="Valor..." min="0" step="1000">
+      <button class="btn btn-red btn-sm" onclick="withdrawTreasurySelic()"><i class="fa-solid fa-minus"></i> Resgatar</button>
+    </div>
+  </div>`;
+
+  const ipcaOpts = TREASURY.filter(t=>t.type==='ipca');
+  const ipcaAvailHTML = ipcaOpts.map(t => {
+    const totalRate = G.inflation + t.fixedRate;
+    return `<tr>
+      <td style="font-weight:500">${t.name}</td>
+      <td class="mono" style="font-size:.8rem">IPCA+ ${fmtN(t.fixedRate)}% = ${fmtN(totalRate)}% a.a.</td>
+      <td><span class="badge badge-yellow">${t.locked} meses</span></td>
+      <td><div style="display:flex;gap:4px"><input class="inp inp-sm" type="number" id="tip_${t.id}" placeholder="R$" min="0" step="1000">
+      <button class="btn btn-green btn-sm" onclick="buyTreasuryIpca('${t.id}')">Comprar</button></div></td>
+    </tr>`;
+  }).join('');
+
+  const ipcaActiveHTML = G.inv.treasuryIpca.length ? G.inv.treasuryIpca.map(inv =>
+    `<tr>
+      <td style="font-weight:500">${inv.name}</td>
+      <td class="mono">${fmtFull(inv.invested)}</td>
+      <td class="mono sc-green">${fmtFull(inv.currentValue)}</td>
+      <td>${inv.monthsRemaining>0?`<span class="badge badge-yellow">${inv.monthsRemaining} meses</span>`:'<span class="badge badge-green">Vencido</span>'}</td>
+      <td class="mono sc-green">${fmtFull(inv.currentValue - inv.invested)}</td>
+    </tr>`
+  ).join('') : '';
+
+  html += `<div class="card section-gap">
+    <div class="card-title"><i class="fa-solid fa-shield-halved"></i> Tesouro IPCA+ (Rendimento Real)</div>
+    <div class="table-wrap"><table><thead><tr><th>Título</th><th>Taxa</th><th>Prazo</th><th>Ação</th></tr></thead><tbody>${ipcaAvailHTML}</tbody></table></div>
+  </div>`;
+  if(G.inv.treasuryIpca.length) html += `<div class="card section-gap"><div class="card-title"><i class="fa-solid fa-lock"></i> Tesouro IPCA+ Ativos</div>
+    <div class="table-wrap"><table><thead><tr><th>Título</th><th>Aplicado</th><th>Valor Atual</th><th>Vencimento</th><th>Rendimento</th></tr></thead><tbody>${ipcaActiveHTML}</tbody></table></div></div>`;
+
+  return html;
+}
+
+function renderVar(assets, key, showDY) {
+  const availHTML = assets.map(a => {
+    const price = G.prices[a.ticker] || a.basePrice;
+    const hist = G.history[a.ticker] || [];
+    const prevPrice = hist.length >= 2 ? hist[hist.length-2] : price;
+    const changePct = prevPrice > 0 ? ((price - prevPrice)/prevPrice*100) : 0;
+    const changeColor = changePct >= 0 ? 'var(--green)' : 'var(--red)';
+    const dyStr = showDY ? `<td class="mono" style="color:var(--green)">${(a.dy*100).toFixed(2)}%</td>` : '';
+    return `<tr>
+      <td><div style="font-weight:600">${a.ticker}</div><div style="font-size:.72rem;color:var(--muted)">${a.name}</div></td>
+      <td class="mono">${fmtFull(price)}</td>
+      <td class="mono" style="color:${changeColor}">${pct(changePct)}</td>
+      ${dyStr}
+      <td>${sparklineHTML(hist.slice(-8), changeColor)}</td>
+      <td><div style="display:flex;gap:4px"><input class="inp inp-sm" type="number" id="v_${key}_${a.ticker}" placeholder="R$" min="0" step="100">
+      <button class="btn btn-green btn-sm" onclick="buyVar('${key}','${a.ticker}')">Comprar</button></div></td>
+    </tr>`;
+  }).join('');
+
+  const holdings = G.inv[key];
+  const activeEntries = Object.entries(holdings).filter(([_,h])=>h.shares>0);
+  const activeHTML = activeEntries.length ? activeEntries.map(([ticker,h]) => {
+    const asset = assets.find(a=>a.ticker===ticker);
+    const price = G.prices[ticker]||0;
+    const totalVal = h.shares * price;
+    const pnl = totalVal - (h.shares * h.avgPrice);
+    const pnlPct = h.avgPrice > 0 ? ((price - h.avgPrice)/h.avgPrice*100) : 0;
+    const pnlColor = pnl >= 0 ? 'var(--green)' : 'var(--red)';
+    const divStr = (showDY && asset) ? `<td class="mono sc-green">${fmtFull(h.shares * price * asset.dy)}/mês</td>` : '';
+    return `<tr>
+      <td style="font-weight:600">${ticker}</td>
+      <td class="mono">${h.shares.toFixed(4)}</td>
+      <td class="mono">${fmtFull(h.avgPrice)}</td>
+      <td class="mono">${fmtFull(price)}</td>
+      <td class="mono" style="color:${pnlColor}">${fmtFull(totalVal)} (${pct(pnlPct)})</td>
+      ${divStr}
+      <td><div style="display:flex;gap:4px">
+        <input class="inp inp-sm" type="number" id="vs_${key}_${ticker}" placeholder="Qtd" min="0" step="0.01">
+        <button class="btn btn-red btn-sm" onclick="sellVar('${key}','${ticker}')">Vender</button>
+        <button class="btn btn-ghost btn-sm" onclick="sellAllVar('${key}','${ticker}')">Tudo</button>
+      </div></td>
+    </tr>`;
+  }).join('') : '';
+
+  const dyHead = showDY ? '<th>Dividendos</th>' : '';
+  return `<div class="card">
+    <div class="card-title"><i class="fa-solid fa-store"></i> Disponíveis para Compra</div>
+    <div class="table-wrap"><table><thead><tr><th>Ativo</th><th>Cotação</th><th>Var.</th>${showDY?'<th>DY Mensal</th>':''}<th>Trend</th><th>Ação</th></tr></thead><tbody>${availHTML}</tbody></table></div>
+  </div>
+  ${activeEntries.length ? `<div class="card section-gap"><div class="card-title"><i class="fa-solid fa-briefcase"></i> Suas Posições</div>
+    <div class="table-wrap"><table><thead><tr><th>Ativo</th><th>Quantidade</th><th>Preço Médio</th><th>Cotação</th><th>Valor / Resultado</th>${dyHead}<th>Ação</th></tr></thead><tbody>${activeHTML}</tbody></table></div></div>` : ''}`;
+}
+
+// ----- BENS -----
+function renderBens() {
+  const carsAvailHTML = CARS.map(c =>
+    `<tr>
+      <td style="font-weight:500">${c.name}</td>
+      <td class="mono">${fmtFull(c.price)}</td>
+      <td class="mono" style="color:var(--red)">${fmtFull(c.cost)}/mês</td>
+      <td class="mono" style="color:var(--muted)">${(c.dep*100).toFixed(1)}%/mês</td>
+      <td><button class="btn btn-primary btn-sm" ${G.balance>=c.price?`onclick="buyCar('${c.id}')"`:'disabled'}>Comprar</button></td>
+    </tr>`
+  ).join('');
+
+  const myCarsHTML = G.cars.length ? G.cars.map((c,i) =>
+    `<tr>
+      <td style="font-weight:500">${c.name}</td>
+      <td class="mono">${fmtFull(c.purchasePrice)}</td>
+      <td class="mono" style="color:var(--red)">${fmtFull(c.currentValue)}</td>
+      <td class="mono" style="color:var(--red)">${fmtFull(c.cost)}/mês</td>
+      <td><button class="btn btn-red btn-sm" onclick="sellCar(${i})">Vender</button></td>
+    </tr>`
+  ).join('') : '';
+
+  const propsAvailHTML = PROPERTIES.map(p =>
+    `<tr>
+      <td style="font-weight:500">${p.name}</td>
+      <td class="mono">${fmtFull(p.price)}</td>
+      <td class="mono" style="color:var(--green)">${fmtFull(p.rent)}/mês</td>
+      <td class="mono" style="color:var(--muted)">${(p.app*100).toFixed(1)}%/mês</td>
+      <td><button class="btn btn-primary btn-sm" ${G.balance>=p.price?`onclick="buyProperty('${p.id}')"`:'disabled'}>Comprar</button></td>
+    </tr>`
+  ).join('');
+
+  const myPropsHTML = G.properties.length ? G.properties.map((p,i) => {
+    const isLiving = G.livingInProp === i;
+    const statusBadge = isLiving ? '<span class="badge badge-blue">Morando</span>' : p.isRented ? '<span class="badge badge-green">Alugado</span>' : '<span class="badge badge-yellow">Vazio</span>';
+    return `<tr>
+      <td style="font-weight:500">${p.name}</td>
+      <td class="mono">${fmtFull(p.purchasePrice)}</td>
+      <td class="mono sc-green">${fmtFull(p.currentValue)}</td>
+      <td>${statusBadge}</td>
+      <td style="white-space:nowrap">
+        ${!isLiving && !p.isRented ? `<button class="btn btn-green btn-sm" onclick="rentProperty(${i})">Alugar</button>` : ''}
+        ${p.isRented ? `<button class="btn btn-ghost btn-sm" onclick="unrentProperty(${i})">Desalugar</button>` : ''}
+        ${!isLiving ? `<button class="btn btn-ghost btn-sm" onclick="liveInProperty(${i})">Morar</button>` : `<button class="btn btn-ghost btn-sm" onclick="stopLiving()">Sair</button>`}
+        <button class="btn btn-red btn-sm" onclick="sellProperty(${i})">Vender</button>
+      </td>
+    </tr>`;
+  }).join('') : '';
+
+  document.getElementById('panel-bens').innerHTML = `
+    <div class="card">
+      <div class="card-title"><i class="fa-solid fa-car"></i> Carros à Venda</div>
+      <div class="table-wrap"><table><thead><tr><th>Modelo</th><th>Preço</th><th>Custo Mensal</th><th>Depreciação</th><th>Ação</th></tr></thead><tbody>${carsAvailHTML}</tbody></table></div>
+    </div>
+    ${G.cars.length ? `<div class="card section-gap"><div class="card-title"><i class="fa-solid fa-key"></i> Meus Carros</div>
+      <div class="table-wrap"><table><thead><tr><th>Modelo</th><th>Preço Compra</th><th>Valor Atual</th><th>Custo Mensal</th><th>Ação</th></tr></thead><tbody>${myCarsHTML}</tbody></table></div></div>` : ''}
+    <div class="card section-gap">
+      <div class="card-title"><i class="fa-solid fa-house"></i> Imóveis à Venda</div>
+      <div class="table-wrap"><table><thead><tr><th>Imóvel</th><th>Preço</th><th>Aluguel Mensal</th><th>Valorização</th><th>Ação</th></tr></thead><tbody>${propsAvailHTML}</tbody></table></div>
+    </div>
+    ${G.properties.length ? `<div class="card section-gap"><div class="card-title"><i class="fa-solid fa-building"></i> Meus Imóveis</div>
+      <div class="table-wrap"><table><thead><tr><th>Imóvel</th><th>Preço Compra</th><th>Valor Atual</th><th>Status</th><th>Ações</th></tr></thead><tbody>${myPropsHTML}</tbody></table></div></div>` : ''}
+  `;
+}
+
+// ----- EMPRÉSTIMOS -----
+function renderEmprestimos() {
+  const totalDebt = G.loans.reduce((s,l)=>s+l.remaining, 0);
+  const monthlyDebt = G.loans.reduce((s,l) => {
+    const interest = l.remaining * (l.annualRate/12/100);
+    const amort = l.originalAmount / l.totalMonths;
+    return s + interest + amort;
+  }, 0);
+
+  const optHTML = LOAN_OPTIONS.map(o =>
+    LOAN_TERMS.map(t => {
+      const rate = G.selic + 5;
+      const monthlyRate = rate / 12 / 100;
+      const amort = o.amount / t;
+      let totalPayment = 0, rem = o.amount;
+      for(let i=0;i<t;i++){ totalPayment += amort + rem*monthlyRate; rem -= amort; }
+      const monthPay = totalPayment / t;
+      return `<tr>
+        <td class="mono">${o.label}</td>
+        <td class="mono">${t} meses</td>
+        <td class="mono" style="color:var(--yellow)">${fmtN(rate)}% a.a.</td>
+        <td class="mono" style="color:var(--red)">${fmtFull(monthPay)}/mês</td>
+        <td class="mono" style="color:var(--muted)">${fmtFull(totalPayment - o.amount)} juros</td>
+        <td><button class="btn btn-sm" style="background:var(--yellow);color:#000;font-weight:600" onclick="takeLoan(${o.amount},${t},${rate})">Pegar</button></td>
+      </tr>`;
+    }).join('')
+  ).join('');
+
+  const activeHTML = G.loans.length ? G.loans.map((l,i) => {
+    const interest = l.remaining * (l.annualRate/12/100);
+    const amort = l.originalAmount / l.totalMonths;
+    const monthPay = interest + amort;
+    return `<tr>
+      <td class="mono">${fmtFull(l.originalAmount)}</td>
+      <td class="mono" style="color:var(--red)">${fmtFull(l.remaining)}</td>
+      <td class="mono">${fmtN(l.annualRate)}%</td>
+      <td class="mono">${l.monthsRemaining} meses</td>
+      <td class="mono" style="color:var(--red)">${fmtFull(monthPay)}/mês</td>
+      <td><button class="btn btn-green btn-sm" ${G.balance>=l.remaining?`onclick="payLoan(${i})"`:'disabled'}>Quitar</button></td>
+    </tr>`;
+  }).join('') : '';
+
+  document.getElementById('panel-emprestimos').innerHTML = `
+    <div class="stat-grid">
+      <div class="stat-card"><div class="sc-label"><i class="fa-solid fa-money-bill-transfer"></i> Dívida Total</div><div class="sc-value sc-red mono">${fmtFull(totalDebt)}</div></div>
+      <div class="stat-card"><div class="sc-label"><i class="fa-solid fa-calendar-xmark"></i> Parcela Mensal</div><div class="sc-value sc-yellow mono">${fmtFull(monthlyDebt)}</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><i class="fa-solid fa-hand-holding-dollar"></i> Opções de Empréstimo</div>
+      <p style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Taxa atrelada à SELIC + 5%. Cuidado: juros altos podem levar ao Game Over!</p>
+      <div class="table-wrap"><table><thead><tr><th>Valor</th><th>Prazo</th><th>Taxa</th><th>Parcela</th><th>Total Juros</th><th>Ação</th></tr></thead><tbody>${optHTML}</tbody></table></div>
+    </div>
+    ${G.loans.length ? `<div class="card section-gap"><div class="card-title"><i class="fa-solid fa-file-invoice-dollar"></i> Empréstimos Ativos</div>
+      <div class="table-wrap"><table><thead><tr><th>Valor Original</th><th>Saldo Devedor</th><th>Taxa</th><th>Restante</th><th>Parcela</th><th>Ação</th></tr></thead><tbody>${activeHTML}</tbody></table></div></div>` : ''}
+  `;
+}
+
+/* ============================================================
+   AÇÕES DO JOGADOR
+   ============================================================ */
+function takeJob(id) {
+  const j = JOBS.find(x=>x.id===id);
+  if(!j || !canTakeJob(j)) return;
+  G.job = { ...j };
+  toast(`Você foi contratado como ${j.title}! Salário: ${fmtFull(j.salary)}/mês`, 'green');
+  saveGame(); render();
+}
+
+function openCompany() {
+  if(G.balance < 100000) return;
+  G.balance -= 100000;
+  G.company = { months:1, lastProfit:0 };
+  toast('Empresa aberta! Fase de maturação: 6 meses com custos de '+fmtFull(5000)+'/mês', 'blue');
+  saveGame(); render();
+}
+
+function closeCompany() {
+  G.company = null;
+  toast('Empresa fechada.', 'yellow');
+  saveGame(); render();
+}
+
+function depositSavings() {
+  const v = parseFloat(document.getElementById('savDep').value);
+  if(!v || v <= 0 || v > G.balance) return toast('Valor inválido ou saldo insuficiente.', 'red');
+  G.balance -= v; G.inv.savings += v;
+  toast(`Depósito de ${fmtFull(v)} na Poupança.`, 'green');
+  saveGame(); render();
+}
+function withdrawSavings() {
+  const v = parseFloat(document.getElementById('savWit').value);
+  if(!v || v <= 0 || v > G.inv.savings) return toast('Valor inválido ou saldo insuficiente.', 'red');
+  G.inv.savings -= v; G.balance += v;
+  toast(`Saque de ${fmtFull(v)} da Poupança.`, 'blue');
+  saveGame(); render();
+}
+
+function buyFixedIncome(id) {
+  const fi = FIXED_INCOME.find(x=>x.id===id);
+  const el = document.getElementById('fi_'+id);
+  const v = parseFloat(el?.value);
+  if(!fi || !v || v <= 0 || v > G.balance) return toast('Valor inválido ou saldo insuficiente.', 'red');
+  let monthlyRate;
+  if(fi.type==='pos') monthlyRate = (G.selic + fi.spread) / 12 / 100;
+  else monthlyRate = fi.rate / 12 / 100;
+  G.balance -= v;
+  G.inv.fixedIncome.push({ name:fi.name, invested:v, currentValue:v, monthlyRate, monthsRemaining:fi.locked, originalMonths:fi.locked });
+  toast(`Aplicação de ${fmtFull(v)} em ${fi.name}.`, 'green');
+  saveGame(); render();
+}
+
+function depositTreasurySelic() {
+  const v = parseFloat(document.getElementById('tsDep').value);
+  if(!v || v <= 0 || v > G.balance) return toast('Valor inválido ou saldo insuficiente.', 'red');
+  G.balance -= v; G.inv.treasurySelic += v;
+  toast(`Compra de ${fmtFull(v)} em Tesouro Selic.`, 'green');
+  saveGame(); render();
+}
+function withdrawTreasurySelic() {
+  const v = parseFloat(document.getElementById('tsWit').value);
+  if(!v || v <= 0 || v > G.inv.treasurySelic) return toast('Valor inválido ou saldo insuficiente.', 'red');
+  G.inv.treasurySelic -= v; G.balance += v;
+  toast(`Resgate de ${fmtFull(v)} do Tesouro Selic.`, 'blue');
+  saveGame(); render();
+}
+
+function buyTreasuryIpca(id) {
+  const t = TREASURY.find(x=>x.id===id);
+  const el = document.getElementById('tip_'+id);
+  const v = parseFloat(el?.value);
+  if(!t || !v || v <= 0 || v > G.balance) return toast('Valor inválido ou saldo insuficiente.', 'red');
+  const monthlyRate = (G.inflation + t.fixedRate) / 12 / 100;
+  G.balance -= v;
+  G.inv.treasuryIpca.push({ name:t.name, invested:v, currentValue:v, monthlyRate, monthsRemaining:t.locked, originalMonths:t.locked });
+  toast(`Compra de ${fmtFull(v)} em ${t.name}.`, 'green');
+  saveGame(); render();
+}
+
+function buyVar(key, ticker) {
+  const el = document.getElementById(`v_${key}_${ticker}`);
+  const v = parseFloat(el?.value);
+  if(!v || v <= 0 || v > G.balance) return toast('Valor inválido ou saldo insuficiente.', 'red');
+  const price = G.prices[ticker] || 0;
+  if(price <= 0) return toast('Preço indisponível.', 'red');
+  const shares = v / price;
+  G.balance -= v;
+  if(!G.inv[key][ticker]) G.inv[key][ticker] = { shares:0, avgPrice:0 };
+  const h = G.inv[key][ticker];
+  const totalCost = h.shares * h.avgPrice + v;
+  h.shares += shares;
+  h.avgPrice = totalCost / h.shares;
+  toast(`Compra de ${shares.toFixed(4)} ${ticker} por ${fmtFull(v)}.`, 'green');
+  saveGame(); render();
+}
+
+function sellVar(key, ticker) {
+  const el = document.getElementById(`vs_${key}_${ticker}`);
+  const qty = parseFloat(el?.value);
+  const h = G.inv[key][ticker];
+  if(!h || !qty || qty <= 0 || qty > h.shares) return toast('Quantidade inválida.', 'red');
+  const price = G.prices[ticker] || 0;
+  const revenue = qty * price;
+  const cost = qty * h.avgPrice;
+  h.shares -= qty;
+  if(h.shares < 0.0001) { h.shares = 0; h.avgPrice = 0; }
+  G.balance += revenue;
+  const pnl = revenue - cost;
+  toast(`Venda de ${qty.toFixed(4)} ${ticker}: ${fmtFull(revenue)} (${pnl>=0?'lucro':'prejuízo'} ${fmtFull(Math.abs(pnl))})`, pnl>=0?'green':'red');
+  saveGame(); render();
+}
+
+function sellAllVar(key, ticker) {
+  const h = G.inv[key][ticker];
+  if(!h || h.shares <= 0) return;
+  const price = G.prices[ticker] || 0;
+  const revenue = h.shares * price;
+  const cost = h.shares * h.avgPrice;
+  G.balance += revenue;
+  const pnl = revenue - cost;
+  h.shares = 0; h.avgPrice = 0;
+  toast(`Venda total de ${ticker}: ${fmtFull(revenue)} (${pnl>=0?'lucro':'prejuízo'} ${fmtFull(Math.abs(pnl))})`, pnl>=0?'green':'red');
+  saveGame(); render();
+}
+
+function buyCar(id) {
+  const c = CARS.find(x=>x.id===id);
+  if(!c || G.balance < c.price) return toast('Saldo insuficiente.', 'red');
+  G.balance -= c.price;
+  G.cars.push({ name:c.name, purchasePrice:c.price, currentValue:c.price, cost:c.cost, dep:c.dep });
+  toast(`${c.name} comprado por ${fmtFull(c.price)}!`, 'green');
+  saveGame(); render();
+}
+function sellCar(idx) {
+  const c = G.cars[idx];
+  if(!c) return;
+  G.balance += c.currentValue;
+  toast(`${c.name} vendido por ${fmtFull(c.currentValue)}.`, 'blue');
+  G.cars.splice(idx, 1);
+  if(G.livingInProp !== null && G.livingInProp >= G.properties.length) G.livingInProp = null;
+  saveGame(); render();
+}
+
+function buyProperty(id) {
+  const p = PROPERTIES.find(x=>x.id===id);
+  if(!p || G.balance < p.price) return toast('Saldo insuficiente.', 'red');
+  G.balance -= p.price;
+  G.properties.push({ name:p.name, purchasePrice:p.price, currentValue:p.price, rent:p.rent, app:p.app, isRented:false });
+  toast(`${p.name} comprado por ${fmtFull(p.price)}!`, 'green');
+  saveGame(); render();
+}
+function sellProperty(idx) {
+  const p = G.properties[idx];
+  if(!p) return;
+  G.balance += p.currentValue;
+  if(G.livingInProp === idx) G.livingInProp = null;
+  else if(G.livingInProp !== null && G.livingInProp > idx) G.livingInProp--;
+  toast(`${p.name} vendido por ${fmtFull(p.currentValue)}.`, 'blue');
+  G.properties.splice(idx, 1);
+  saveGame(); render();
+}
+function rentProperty(idx) {
+  if(!G.properties[idx] || G.livingInProp === idx) return;
+  G.properties[idx].isRented = true;
+  toast(`${G.properties[idx].name} colocado para alugar. Renda: ${fmtFull(G.properties[idx].rent)}/mês`, 'green');
+  saveGame(); render();
+}
+function unrentProperty(idx) {
+  if(!G.properties[idx]) return;
+  G.properties[idx].isRented = false;
+  toast(`${G.properties[idx].name} desalugado.`, 'yellow');
+  saveGame(); render();
+}
+function liveInProperty(idx) {
+  if(!G.properties[idx]) return;
+  G.livingInProp = idx;
+  G.properties[idx].isRented = false;
+  toast(`Agora você mora em ${G.properties[idx].name}. Aluguel zerado!`, 'green');
+  saveGame(); render();
+}
+function stopLiving() {
+  G.livingInProp = null;
+  toast('Você voltou a pagar aluguel.', 'yellow');
+  saveGame(); render();
+}
+
+function takeLoan(amount, months, rate) {
+  G.loans.push({ originalAmount:amount, remaining:amount, annualRate:rate, totalMonths:months, monthsRemaining:months });
+  G.balance += amount;
+  toast(`Empréstimo de ${fmtFull(amount)} aprovado! ${months} parcelas a ${fmtN(rate)}% a.a.`, 'yellow');
+  saveGame(); render();
+}
+function payLoan(idx) {
+  const l = G.loans[idx];
+  if(!l || G.balance < l.remaining) return toast('Saldo insuficiente para quitar.', 'red');
+  G.balance -= l.remaining;
+  toast(`Empréstimo de ${fmtFull(l.originalAmount)} quitado!`, 'green');
+  G.loans.splice(idx, 1);
+  saveGame(); render();
+}
+
+/* ============================================================
+   LÓGICA DO MÊS
+   ============================================================ */
+function updatePrices() {
+  [...FIIS,...STOCKS,...CRYPTOS].forEach(a => {
+    const old = G.prices[a.ticker] || a.basePrice;
+    let marketBias = (G.selic - 10) * -0.002;
+    const change = (Math.random()-0.5 + marketBias) * a.vol;
+    const newPrice = Math.max(old * 0.1, old * (1 + change));
+    G.prices[a.ticker] = Math.round(newPrice * 100) / 100;
+    if(!G.history[a.ticker]) G.history[a.ticker] = [];
+    G.history[a.ticker].push(G.prices[a.ticker]);
+    if(G.history[a.ticker].length > 24) G.history[a.ticker].shift();
+  });
+}
+
+function advanceMonth() {
+  const S = { income:{}, expenses:{}, returns:{}, events:[] };
+
+  G.month++;
+
+  if(G.job && G.job.salary > 0) {
+    G.balance += G.job.salary;
+    S.income.salary = G.job.salary;
+  }
+
+  if(G.company) {
+    if(G.company.months <= 6) {
+      G.balance -= 5000;
+      S.expenses.companyCost = 5000;
+      G.company.months++;
+    } else {
+      const baseProfit = 3000 + G.month * 50;
+      const profit = Math.round(baseProfit + (Math.random()-0.3) * 12000);
+      G.balance += profit;
+      G.company.lastProfit = profit;
+      if(profit >= 0) S.income.companyProfit = profit;
+      else S.expenses.companyLoss = -profit;
+      G.company.months++;
+      if(Math.random() < 0.02) {
+        G.company = null;
+        S.events.push('<i class="fa-solid fa-bomb"></i> Sua empresa faliu!');
+      }
+    }
+  }
+
+  // Rendimentos
+  const savRet = G.inv.savings * (0.06/12);
+  G.inv.savings += savRet;
+  if(savRet > 0) S.returns.poupanca = savRet;
+
+  let fiMatured = 0;
+  G.inv.fixedIncome.forEach(inv => {
+    inv.currentValue *= (1 + inv.monthlyRate);
+    inv.monthsRemaining--;
+  });
+  G.inv.fixedIncome = G.inv.fixedIncome.filter(inv => {
+    if(inv.monthsRemaining <= 0) { fiMatured += inv.currentValue; return false; }
+    return true;
+  });
+  if(fiMatured > 0) { G.balance += fiMatured; S.returns.rfMatured = fiMatured; }
+
+  const tsRate = (G.selic - 0.15) / 12 / 100;
+  const tsRet = G.inv.treasurySelic * tsRate;
+  G.inv.treasurySelic += tsRet;
+  if(tsRet > 0) S.returns.tesouroSelic = tsRet;
+
+  let ipcaMatured = 0;
+  G.inv.treasuryIpca.forEach(inv => {
+    inv.currentValue *= (1 + inv.monthlyRate);
+    inv.monthsRemaining--;
+  });
+  G.inv.treasuryIpca = G.inv.treasuryIpca.filter(inv => {
+    if(inv.monthsRemaining <= 0) { ipcaMatured += inv.currentValue; return false; }
+    return true;
+  });
+  if(ipcaMatured > 0) { G.balance += ipcaMatured; S.returns.ipcaMatured = ipcaMatured; }
+
+  let fiiDiv = 0;
+  for(const ticker in G.inv.fiis) {
+    const h = G.inv.fiis[ticker];
+    if(h.shares > 0) {
+      const fii = FIIS.find(f=>f.ticker===ticker);
+      if(fii) fiiDiv += h.shares * (G.prices[ticker]||0) * fii.dy;
+    }
+  }
+  if(fiiDiv > 0) { G.balance += fiiDiv; S.returns.fiiDividends = fiiDiv; }
+
+  // Despesas
+  let rent = G.livingInProp !== null ? 0 : G.expenses.rent;
+  let fixedTotal = rent + G.expenses.food + G.expenses.transport + G.expenses.insurance + G.expenses.utilities;
+  G.balance -= fixedTotal;
+  S.expenses.fixed = fixedTotal;
+  if(rent > 0) S.expenses.rent = rent;
+  else if(G.livingInProp !== null) S.income.noRent = G.expenses.rent;
+
+  let carCost = 0;
+  G.cars.forEach(c => {
+    carCost += c.cost;
+    c.currentValue *= (1 - c.dep);
+    c.currentValue = Math.max(c.currentValue, c.purchasePrice * 0.15);
+  });
+  if(carCost > 0) { G.balance -= carCost; S.expenses.cars = carCost; }
+
+  let rentalInc = 0;
+  G.properties.forEach(p => {
+    if(p.isRented) rentalInc += p.rent;
+    p.currentValue *= (1 + p.app);
+  });
+  if(rentalInc > 0) { G.balance += rentalInc; S.income.rental = rentalInc; }
+
+  // Empréstimos
+  let loanPay = 0;
+  G.loans.forEach(l => {
+    const interest = l.remaining * (l.annualRate / 12 / 100);
+    const amort = l.originalAmount / l.totalMonths;
+    const payment = interest + amort;
+    G.balance -= payment;
+    l.remaining = Math.max(0, l.remaining - amort);
+    l.monthsRemaining--;
+    loanPay += payment;
+  });
+  G.loans = G.loans.filter(l => l.monthsRemaining > 0 && l.remaining > 1);
+  if(loanPay > 0) S.expenses.loans = loanPay;
+
+  // Preços de ativos
+  updatePrices();
+
+  // Evento aleatório
+  if(Math.random() < 0.15) {
+    const ev = EVENTS[randInt(0, EVENTS.length-1)];
+    const adjustedCost = Math.round(ev.cost * (1 + G.inflation/100));
+    G.balance -= adjustedCost;
+    S.events.push(`<i class="fa-solid fa-triangle-exclamation"></i> ${ev.text} <span style="color:var(--red)">-${fmtFull(adjustedCost)}</span>`);
+    G.events.push(`Mês ${monthLabel(G.month)}: ${ev.text} -${fmtFull(adjustedCost)}`);
+  }
+
+  // Promoção / Demissão
+  if(G.job && G.job.id !== 'desempregado') {
+    if(Math.random() < 0.05) {
+      const nextIdx = JOBS.findIndex(j=>j.id===G.job.id) + 1;
+      if(nextIdx < JOBS.length) {
+        const next = JOBS[nextIdx];
+        if(canTakeJob(next)) {
+          G.job = { ...next };
+          S.events.push(`<i class="fa-solid fa-arrow-up" style="color:var(--green)"></i> Promovido para <strong>${next.title}</strong>! Novo salário: ${fmtFull(next.salary)}`);
+        }
+      }
+    }
+    if(Math.random() < 0.03 && G.job.id !== 'desempregado') {
+      const oldTitle = G.job.title;
+      G.job = { ...JOBS[0] };
+      S.events.push(`<i class="fa-solid fa-arrow-down" style="color:var(--red)"></i> Demitido de <strong>${oldTitle}</strong>!`);
+    }
+  }
+
+  // Macroeconomia
+  if(G.month % (Math.random() < 0.5 ? 3 : 6) === 0) {
+    G.selic = Math.round(clamp(G.selic + rand(-1.5, 1.5), 5, 20) * 10) / 10;
+    G.inflation = Math.round(clamp(G.inflation + rand(-1, 1), 1, 12) * 10) / 10;
+    S.events.push(`<i class="fa-solid fa-chart-bar" style="color:var(--yellow)"></i> Economia atualizada: SELIC ${fmtN(G.selic)}%, Inflação ${fmtN(G.inflation)}%`);
+  }
+
+  // Registra histórico para gráficos
+  const nw = calcNetWorth();
+  if(nw > G.peakNetWorth) G.peakNetWorth = nw;
+  G.histNW.push(Math.round(nw * 100) / 100);
+  G.histSelic.push(G.selic);
+  G.histInflation.push(G.inflation);
+  G.histMonths.push(monthLabel(G.month));
+  // Limita a 120 pontos de histórico para performance
+  if(G.histNW.length > 120) {
+    G.histNW.shift(); G.histSelic.shift(); G.histInflation.shift(); G.histMonths.shift();
+  }
+
+  // Game Over
+  if(G.balance < -100000) { showGameOver(); return; }
+
+  saveGame();
+  showMonthSummary(S);
+  render();
+}
+
+/* ============================================================
+   MODAL DE RESUMO MENSAL
+   ============================================================ */
+function showMonthSummary(S) {
+  document.getElementById('summaryTitle').textContent = `Resumo — Mês ${monthLabel(G.month)}`;
+  let html = '';
+
+  const incItems = [];
+  if(S.income.salary) incItems.push(['Salário', S.income.salary]);
+  if(S.income.companyProfit) incItems.push(['Lucro da Empresa', S.income.companyProfit]);
+  if(S.income.rental) incItems.push(['Aluguéis Recebidos', S.income.rental]);
+  if(S.income.noRent) incItems.push(['Economia de Aluguel', S.income.noRent]);
+  if(incItems.length) {
+    html += '<div style="margin-bottom:12px"><div style="font-size:.78rem;color:var(--green);font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Receitas</div>';
+    incItems.forEach(([l,v]) => { html += `<div class="summary-row"><span class="sr-label">${l}</span><span class="mono" style="color:var(--green)">${fmtFull(v)}</span></div>`; });
+    html += '</div>';
+  }
+
+  const expItems = [];
+  if(S.expenses.rent) expItems.push(['Aluguel', S.expenses.rent]);
+  if(S.expenses.fixed) expItems.push(['Despesas Fixas', S.expenses.fixed - (S.expenses.rent||0)]);
+  if(S.expenses.cars) expItems.push(['Manutenção de Carros', S.expenses.cars]);
+  if(S.expenses.companyCost) expItems.push(['Custo Empresa (maturação)', S.expenses.companyCost]);
+  if(S.expenses.companyLoss) expItems.push(['Prejuízo da Empresa', S.expenses.companyLoss]);
+  if(S.expenses.loans) expItems.push(['Parcelas de Empréstimos', S.expenses.loans]);
+  if(expItems.length) {
+    html += '<div style="margin-bottom:12px"><div style="font-size:.78rem;color:var(--red);font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Despesas</div>';
+    expItems.forEach(([l,v]) => { html += `<div class="summary-row"><span class="sr-label">${l}</span><span class="mono" style="color:var(--red)">${fmtFull(v)}</span></div>`; });
+    html += '</div>';
+  }
+
+  const retItems = [];
+  if(S.returns.poupanca) retItems.push(['Poupança', S.returns.poupanca]);
+  if(S.returns.tesouroSelic) retItems.push(['Tesouro Selic', S.returns.tesouroSelic]);
+  if(S.returns.fiiDividends) retItems.push(['Dividendos FIIs', S.returns.fiiDividends]);
+  if(S.returns.rfMatured) retItems.push(['Renda Fixa Vencida', S.returns.rfMatured]);
+  if(S.returns.ipcaMatured) retItems.push(['Tesouro IPCA+ Vencido', S.returns.ipcaMatured]);
+  if(retItems.length) {
+    html += '<div style="margin-bottom:12px"><div style="font-size:.78rem;color:var(--accent);font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Rendimentos</div>';
+    retItems.forEach(([l,v]) => { html += `<div class="summary-row"><span class="sr-label">${l}</span><span class="mono" style="color:var(--accent)">${fmtFull(v)}</span></div>`; });
+    html += '</div>';
+  }
+
+  if(S.events.length) {
+    html += '<div style="margin-bottom:12px"><div style="font-size:.78rem;color:var(--yellow);font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Eventos</div>';
+    S.events.forEach(e => { html += `<div class="event-item">${e}</div>`; });
+    html += '</div>';
+  }
+
+  html += `<div class="summary-total"><span>Saldo Atual</span><span class="mono" style="color:${G.balance>=0?'var(--green)':'var(--red)'}">${fmtFull(G.balance)}</span></div>`;
+
+  document.getElementById('summaryContent').innerHTML = html;
+  document.getElementById('summaryModal').classList.add('show');
+}
+
+function closeSummary() {
+  document.getElementById('summaryModal').classList.remove('show');
+}
+
+/* ============================================================
+   GAME OVER E RESET
+   ============================================================ */
+function showGameOver() {
+  document.getElementById('goText').innerHTML = `Seu saldo atingiu <strong style="color:var(--red)">${fmtFull(G.balance)}</strong>, ultrapassando o limite de -R$ 100.000.<br><br>Você sobreviveu por <strong>${G.month}</strong> meses. Pico patrimonial: <strong style="color:var(--green)">${fmtFull(G.peakNetWorth)}</strong>.`;
+  document.getElementById('gameover').classList.add('show');
+  localStorage.removeItem('finSim');
+}
+
+function confirmReset() {
+  if(resetPending) { resetGame(); return; }
+  resetPending = true;
+  const btn = document.getElementById('resetBtn');
+  btn.innerHTML = '<i class="fa-solid fa-exclamation-triangle"></i> Confirmar?';
+  btn.classList.remove('btn-ghost');
+  btn.classList.add('btn-red');
+  setTimeout(() => {
+    resetPending = false;
+    btn.innerHTML = '<i class="fa-solid fa-rotate-right"></i> Resetar';
+    btn.classList.remove('btn-red');
+    btn.classList.add('btn-ghost');
+  }, 3000);
+}
+
+function resetGame() {
+  localStorage.removeItem('finSim');
+  if(chartNW) { chartNW.destroy(); chartNW = null; }
+  if(chartMacro) { chartMacro.destroy(); chartMacro = null; }
+  document.getElementById('gameover').classList.remove('show');
+  document.getElementById('game').style.display = 'none';
+  document.getElementById('welcome').classList.remove('hidden');
+  G = null;
+  activeTab = 'dashboard';
+  activeInvTab = 'reserva';
+}
+
+/* ============================================================
+   INICIALIZAÇÃO
+   ============================================================ */
+function startGame() {
+  const name = document.getElementById('nameInput').value.trim();
+  if(!name) { document.getElementById('nameInput').style.borderColor='var(--red)'; return; }
+  G = newGame(name);
+  saveGame();
+  document.getElementById('welcome').classList.add('hidden');
+  document.getElementById('game').style.display = 'block';
+  render();
+  toast(`Bem-vindo, ${name}! Seu saldo inicial é ${fmtFull(G.balance)}.`, 'blue');
+}
+
+document.getElementById('nameInput').addEventListener('keydown', e => {
+  if(e.key === 'Enter') startGame();
+  document.getElementById('nameInput').style.borderColor = 'var(--border)';
+});
+
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape') closeSummary();
+});
+
+(function init() {
+  if(loadGame() && G && G.name) {
+    // Garante que os arrays de histórico existem (compatibilidade com saves antigos)
+    if(!G.histNW) G.histNW = [calcNetWorth()];
+    if(!G.histSelic) G.histSelic = [G.selic];
+    if(!G.histInflation) G.histInflation = [G.inflation];
+    if(!G.histMonths) G.histMonths = [monthLabel(G.month)];
+    document.getElementById('welcome').classList.add('hidden');
+    document.getElementById('game').style.display = 'block';
+    render();
+  }
+})();
+</script>
+</body>
+</html>
