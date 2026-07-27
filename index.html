@@ -650,6 +650,7 @@
         <button class="filter-button" type="button" data-filter="hidratantes" aria-pressed="false">Hidratantes 170g</button>
         <button class="filter-button" type="button" data-filter="maos" aria-pressed="false">Mãos 30g</button>
         <button class="filter-button" type="button" data-filter="esfoliantes" aria-pressed="false">Esfoliantes</button>
+        <button class="filter-button" type="button" data-filter="sabonetes" aria-pressed="false">Sabonetes</button>
         <button class="filter-button" type="button" data-filter="velas" aria-pressed="false">Velas</button>
       </div>
 
@@ -778,6 +779,34 @@
               <span class="price">R$ 30,00</span>
             </div>
             <p>Aroma cítrico e textura envolvente para o banho.</p>
+          </div>
+        </article>
+
+        <article class="product">
+          <div class="photo">
+            <img class="first" src="https://raw.githubusercontent.com/pomarcosmeticos/imagens/b732717e4970038ae946298736ceb55303212018/Sabonete_lavanda%20com%20alecrim.png" alt="Sabonete artesanal Pomar de lavanda com alecrim" />
+          </div>
+          <div class="body">
+            <span class="tag">Sabonete artesanal</span>
+            <div class="title-row">
+              <h3>Lavanda com Alecrim</h3>
+              <span class="price">R$ 9,90</span>
+            </div>
+            <p>Combinação aromática floral e herbal em um sabonete artesanal.</p>
+          </div>
+        </article>
+
+        <article class="product">
+          <div class="photo">
+            <img class="first" src="https://raw.githubusercontent.com/pomarcosmeticos/imagens/b732717e4970038ae946298736ceb55303212018/Sabonete_Sal_Marinho.png" alt="Sabonete artesanal Pomar de sal marinho" />
+          </div>
+          <div class="body">
+            <span class="tag">Sabonete artesanal</span>
+            <div class="title-row">
+              <h3>Sal Marinho</h3>
+              <span class="price">R$ 9,90</span>
+            </div>
+            <p>Sabonete artesanal com fragrância fresca inspirada no mar.</p>
           </div>
         </article>
 
@@ -966,6 +995,7 @@
       const tag = card.querySelector(".tag")?.textContent.toLowerCase() || "";
       if (tag.includes("vela")) return "velas";
       if (tag.includes("esfoliante")) return "esfoliantes";
+      if (tag.includes("sabonete")) return "sabonetes";
       if (tag.includes("mãos")) return "maos";
       return "hidratantes";
     }
