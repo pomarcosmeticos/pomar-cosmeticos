@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Catálogo Pomar de cosméticos artesanais: hidratantes, esfoliantes cremosos e sabonetes." />
+  <meta name="description" content="Catálogo Pomar de cosméticos artesanais: hidratantes, esfoliantes cremosos e velas aromáticas." />
   <title>Pomar | Catálogo</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -209,6 +209,42 @@
       font-weight: 500;
     }
 
+    .filters {
+      max-width: 1180px;
+      margin: 0 auto 22px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .filter-button {
+      min-height: 38px;
+      padding: 0 14px;
+      border: 1px solid rgba(255, 255, 255, .18);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .08);
+      color: rgba(255, 255, 255, .84);
+      font: inherit;
+      font-size: .74rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: transform .2s ease, background .2s ease, color .2s ease, border-color .2s ease;
+    }
+
+    .filter-button:hover,
+    .filter-button:focus-visible {
+      transform: translateY(-2px);
+      border-color: rgba(255, 255, 255, .46);
+      color: var(--white);
+    }
+
+    .filter-button.active {
+      background: var(--cream);
+      border-color: var(--cream);
+      color: var(--green-900);
+    }
+
     .products {
       max-width: 1180px;
       margin: 0 auto;
@@ -225,6 +261,30 @@
         linear-gradient(180deg, rgba(255, 255, 255, .14), rgba(255, 255, 255, .05)),
         rgba(255, 255, 255, .07);
       box-shadow: var(--shadow);
+      animation: productIn .55s ease both;
+      animation-delay: calc(var(--card-index, 0) * 42ms);
+      transition: opacity .22s ease, transform .22s ease, border-color .22s ease, box-shadow .22s ease;
+    }
+
+    .product:hover {
+      transform: translateY(-5px);
+      border-color: rgba(255, 255, 255, .28);
+      box-shadow: 0 28px 78px rgba(5, 18, 11, .42);
+    }
+
+    .product.hidden {
+      display: none;
+    }
+
+    @keyframes productIn {
+      from {
+        opacity: 0;
+        transform: translateY(18px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .photo {
@@ -320,6 +380,7 @@
       background: rgba(255, 255, 255, .08);
       padding: clamp(24px, 4vw, 42px);
       box-shadow: var(--shadow);
+      animation: productIn .55s ease both;
     }
 
     .panel h3 {
@@ -497,6 +558,17 @@
         gap: 14px;
       }
 
+      .filters {
+        gap: 7px;
+        margin-bottom: 18px;
+      }
+
+      .filter-button {
+        min-height: 36px;
+        padding: 0 11px;
+        font-size: .68rem;
+      }
+
       .photo {
         min-height: 246px;
         padding-top: 18px;
@@ -528,6 +600,17 @@
         flex-direction: column;
       }
     }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+      }
+    }
   </style>
 </head>
 <body>
@@ -538,6 +621,7 @@
     <nav class="nav" aria-label="Seções do catálogo">
       <a href="#produtos">Produtos</a>
       <a href="#sabonetes">Sabonetes</a>
+      <a href="#velas">Velas</a>
       <a class="whatsapp whatsapp-link" href="https://wa.me/554499405527?text=Ol%C3%A1%2C%20tenho%20interesse%20nos%20produtos%20da%20Pomar." target="_blank" rel="noopener">WhatsApp</a>
     </nav>
   </header>
@@ -547,7 +631,7 @@
       <img class="hero-logo" src="https://raw.githubusercontent.com/BrunoCafe7/Pomar/799c4b094e218858f082607698b011ed38f5f69d/Sem%20t%C3%ADtulo-2-02.png" alt="Pomar" />
       <span class="eyebrow">Cosméticos artesanais</span>
       <h1>Cuidado que floresce.</h1>
-      <p>Hidratantes, esfoliantes cremosos e sabonetes feitos em pequenos lotes, com aromas delicados e uma estética natural.</p>
+      <p>Hidratantes, esfoliantes cremosos e velas aromáticas feitos em pequenos lotes, com aromas delicados e uma estética natural.</p>
       <a class="whatsapp" href="https://wa.me/554499405527?text=Ol%C3%A1%2C%20tenho%20interesse%20nos%20produtos%20da%20Pomar." target="_blank" rel="noopener">Falar no WhatsApp</a>
     </div>
   </section>
@@ -561,7 +645,155 @@
         </div>
       </div>
 
+      <div class="filters" aria-label="Filtrar produtos">
+        <button class="filter-button active" type="button" data-filter="todos" aria-pressed="true">Todos</button>
+        <button class="filter-button" type="button" data-filter="hidratantes" aria-pressed="false">Hidratantes 170g</button>
+        <button class="filter-button" type="button" data-filter="maos" aria-pressed="false">Mãos 30g</button>
+        <button class="filter-button" type="button" data-filter="esfoliantes" aria-pressed="false">Esfoliantes</button>
+        <button class="filter-button" type="button" data-filter="velas" aria-pressed="false">Velas</button>
+      </div>
+
       <div class="products">
+        <article class="product has-swap">
+          <div class="photo">
+            <img class="first" src="https://raw.githubusercontent.com/pomarcosmeticos/imagens/bc39881451ee5f5312c739b858e3b2c898bb4922/Creme%20Hidratante%20Ameixa.png" alt="Creme hidratante Pomar Ameixa 170g" />
+            <img class="second" src="https://raw.githubusercontent.com/pomarcosmeticos/imagens/bc39881451ee5f5312c739b858e3b2c898bb4922/Creme_Hidratante_Ameixa.png" alt="Outra imagem do creme hidratante Pomar Ameixa 170g" />
+          </div>
+          <div class="body">
+            <span class="tag">Creme hidratante 170g</span>
+            <div class="title-row">
+              <h3>Ameixa</h3>
+              <span class="price">R$ 20,00</span>
+            </div>
+            <p>Hidratante corporal com perfume frutado e textura cremosa.</p>
+          </div>
+        </article>
+
+        <article class="product">
+          <div class="photo">
+            <img class="first" src="https://raw.githubusercontent.com/pomarcosmeticos/imagens/bc39881451ee5f5312c739b858e3b2c898bb4922/Creme%20Hidratante%20Cereja%20e%20Avel%C3%A3.png" alt="Creme hidratante Pomar Cereja e Avelã 170g" />
+          </div>
+          <div class="body">
+            <span class="tag">Creme hidratante 170g</span>
+            <div class="title-row">
+              <h3>Cereja e Avelã</h3>
+              <span class="price">R$ 20,00</span>
+            </div>
+            <p>Aroma doce e envolvente para cuidado diário do corpo.</p>
+          </div>
+        </article>
+
+        <article class="product">
+          <div class="photo">
+            <img class="first" src="https://raw.githubusercontent.com/pomarcosmeticos/imagens/bc39881451ee5f5312c739b858e3b2c898bb4922/Creme%20Hidratante%20Laranja.png" alt="Creme hidratante Pomar Laranja 170g" />
+          </div>
+          <div class="body">
+            <span class="tag">Creme hidratante 170g</span>
+            <div class="title-row">
+              <h3>Laranja</h3>
+              <span class="price">R$ 20,00</span>
+            </div>
+            <p>Opção cítrica e luminosa da linha de hidratantes corporais.</p>
+          </div>
+        </article>
+
+        <article class="product">
+          <div class="photo">
+            <img class="first" src="https://raw.githubusercontent.com/pomarcosmeticos/imagens/bc39881451ee5f5312c739b858e3b2c898bb4922/Creme%20M%C3%A3os%20Ameixa%2030g.png" alt="Creme de mãos Pomar Ameixa 30g" />
+          </div>
+          <div class="body">
+            <span class="tag">Hidratante de mãos 30g</span>
+            <div class="title-row">
+              <h3>Ameixa</h3>
+              <span class="price">R$ 12,00</span>
+            </div>
+            <p>Versão compacta para levar na bolsa e reaplicar ao longo do dia.</p>
+          </div>
+        </article>
+
+        <article class="product">
+          <div class="photo">
+            <img class="first" src="https://raw.githubusercontent.com/pomarcosmeticos/imagens/bc39881451ee5f5312c739b858e3b2c898bb4922/Creme%20M%C3%A3os%20Cereja%20e%20Avel%C3%A3%2030g.png" alt="Creme de mãos Pomar Cereja e Avelã 30g" />
+          </div>
+          <div class="body">
+            <span class="tag">Hidratante de mãos 30g</span>
+            <div class="title-row">
+              <h3>Cereja e Avelã</h3>
+              <span class="price">R$ 12,00</span>
+            </div>
+            <p>Creme de mãos com aroma adocicado e acabamento confortável.</p>
+          </div>
+        </article>
+
+        <article class="product">
+          <div class="photo">
+            <img class="first" src="https://raw.githubusercontent.com/pomarcosmeticos/imagens/bc39881451ee5f5312c739b858e3b2c898bb4922/Creme%20M%C3%A3os%20Laranja30g.png" alt="Creme de mãos Pomar Laranja 30g" />
+          </div>
+          <div class="body">
+            <span class="tag">Hidratante de mãos 30g</span>
+            <div class="title-row">
+              <h3>Laranja</h3>
+              <span class="price">R$ 12,00</span>
+            </div>
+            <p>Formato prático com fragrância cítrica para o cuidado das mãos.</p>
+          </div>
+        </article>
+
+        <article class="product">
+          <div class="photo">
+            <img class="first" src="https://raw.githubusercontent.com/pomarcosmeticos/imagens/bc39881451ee5f5312c739b858e3b2c898bb4922/Esfoliante_ameixa.png" alt="Esfoliante Pomar Ameixa" />
+          </div>
+          <div class="body">
+            <span class="tag">Esfoliante cremoso</span>
+            <div class="title-row">
+              <h3>Ameixa</h3>
+              <span class="price">R$ 30,00</span>
+            </div>
+            <p>Esfoliação cremosa com aroma frutado e textura macia.</p>
+          </div>
+        </article>
+
+        <article class="product">
+          <div class="photo">
+            <img class="first" src="https://raw.githubusercontent.com/pomarcosmeticos/imagens/bc39881451ee5f5312c739b858e3b2c898bb4922/Esfoliante_cereja%20e%20avela.png" alt="Esfoliante Pomar Cereja e Avelã" />
+          </div>
+          <div class="body">
+            <span class="tag">Esfoliante cremoso</span>
+            <div class="title-row">
+              <h3>Cereja e Avelã</h3>
+              <span class="price">R$ 30,00</span>
+            </div>
+            <p>Textura cremosa para renovar a pele com perfume doce.</p>
+          </div>
+        </article>
+
+        <article class="product">
+          <div class="photo">
+            <img class="first" src="https://raw.githubusercontent.com/pomarcosmeticos/imagens/bc39881451ee5f5312c739b858e3b2c898bb4922/Esfoliante_laranja.png" alt="Esfoliante Pomar Laranja" />
+          </div>
+          <div class="body">
+            <span class="tag">Esfoliante cremoso</span>
+            <div class="title-row">
+              <h3>Laranja</h3>
+              <span class="price">R$ 30,00</span>
+            </div>
+            <p>Aroma cítrico e textura envolvente para o banho.</p>
+          </div>
+        </article>
+
+        <article class="product">
+          <div class="photo">
+            <img class="first" src="https://raw.githubusercontent.com/pomarcosmeticos/imagens/bc39881451ee5f5312c739b858e3b2c898bb4922/Velas%20ar%C3%B3maticas.png" alt="Velas aromáticas Pomar" />
+          </div>
+          <div class="body">
+            <span class="tag">Velas aromáticas</span>
+            <div class="title-row">
+              <h3>Vidro, Aspiral e Bolhas</h3>
+              <span class="price">R$ 25-30</span>
+            </div>
+            <p>Vidro 100ml por R$ 25,00. Aspiral e Bolhas por R$ 30,00. Cheiros: coco, cacau e maçã com canela.</p>
+          </div>
+        </article>
         <article class="product">
           <div class="photo">
             <img class="first" src="https://raw.githubusercontent.com/BrunoCafe7/Pomar/799c4b094e218858f082607698b011ed38f5f69d/hidratante_corporal_170ml_lavanda.png" alt="Creme hidratante Pomar Lavanda 170g" />
@@ -596,7 +828,7 @@
             <img class="first" src="https://raw.githubusercontent.com/BrunoCafe7/Pomar/799c4b094e218858f082607698b011ed38f5f69d/Hidratante_Lavanda_30g.png" alt="Creme hidratante Pomar Lavanda 30g" />
           </div>
           <div class="body">
-            <span class="tag">Creme hidratante 30g</span>
+            <span class="tag">Hidratante de mãos 30g</span>
             <div class="title-row">
               <h3>Lavanda</h3>
               <span class="price">R$ 12,00</span>
@@ -611,7 +843,7 @@
             <img class="second" src="https://raw.githubusercontent.com/BrunoCafe7/Pomar/799c4b094e218858f082607698b011ed38f5f69d/Esfoliante_corporal_cremoso_lavanda2.png" alt="Outra imagem do esfoliante Pomar Lavanda 170g" />
           </div>
           <div class="body">
-            <span class="tag">Esfoliante cremoso 170g</span>
+            <span class="tag">Esfoliante cremoso</span>
             <div class="title-row">
               <h3>Lavanda</h3>
               <span class="price">R$ 30,00</span>
@@ -626,7 +858,7 @@
             <img class="second" src="https://raw.githubusercontent.com/BrunoCafe7/Pomar/799c4b094e218858f082607698b011ed38f5f69d/Esfoliante_corporal_cremoso_baunilha2.png" alt="Outra imagem do esfoliante Pomar Coco com Baunilha 170g" />
           </div>
           <div class="body">
-            <span class="tag">Esfoliante cremoso 170g</span>
+            <span class="tag">Esfoliante cremoso</span>
             <div class="title-row">
               <h3>Coco com Baunilha</h3>
               <span class="price">R$ 30,00</span>
@@ -675,6 +907,38 @@
       </div>
     </section>
 
+    <section class="section alt" id="velas">
+      <div class="section-head">
+        <div>
+          <div class="kicker">Velas</div>
+          <h2>Velas aromáticas</h2>
+        </div>
+          <p>Velas para perfumar o ambiente com cheiros acolhedores: coco, cacau e maçã com canela. Aceitamos encomenda conforme disponibilidade.</p>
+      </div>
+
+      <div class="notes">
+        <article class="panel">
+          <h3>Formatos</h3>
+          <ul class="list">
+            <li><strong>Vidro 100ml:</strong> R$ 25,00.</li>
+            <li><strong>Aspiral:</strong> R$ 30,00.</li>
+            <li><strong>Bolhas:</strong> R$ 30,00.</li>
+          </ul>
+        </article>
+
+        <article class="panel">
+          <h3>Cheiros</h3>
+          <p class="simple-copy">Cheiros disponíveis para pronta entrega ou encomenda.</p>
+          <div class="chips" aria-label="Cheiros disponíveis">
+            <span class="chip">Maçã com canela</span>
+            <span class="chip">Cacau</span>
+            <span class="chip">Coco</span>
+            <span class="chip">Aceitamos encomenda</span>
+          </div>
+        </article>
+      </div>
+    </section>
+
     <section class="section alt" id="contato">
       <div class="contact">
         <div>
@@ -694,5 +958,48 @@
       <a class="social-link" href="https://www.instagram.com/pomar_cosmeticos/" target="_blank" rel="noopener">Instagram</a>
     </div>
   </footer>
+  <script>
+    const filterButtons = document.querySelectorAll(".filter-button");
+    const productCards = Array.from(document.querySelectorAll(".product"));
+
+    function getProductCategory(card) {
+      const tag = card.querySelector(".tag")?.textContent.toLowerCase() || "";
+      if (tag.includes("vela")) return "velas";
+      if (tag.includes("esfoliante")) return "esfoliantes";
+      if (tag.includes("mãos")) return "maos";
+      return "hidratantes";
+    }
+
+    function showProducts(filter) {
+      let visibleIndex = 0;
+
+      productCards.forEach((card) => {
+        const shouldShow = filter === "todos" || getProductCategory(card) === filter;
+        card.classList.toggle("hidden", !shouldShow);
+
+        if (shouldShow) {
+          card.style.setProperty("--card-index", visibleIndex);
+          card.style.animation = "none";
+          card.offsetHeight;
+          card.style.animation = "";
+          visibleIndex += 1;
+        }
+      });
+    }
+
+    filterButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        filterButtons.forEach((item) => item.classList.remove("active"));
+        filterButtons.forEach((item) => item.setAttribute("aria-pressed", "false"));
+        button.classList.add("active");
+        button.setAttribute("aria-pressed", "true");
+        showProducts(button.dataset.filter);
+      });
+    });
+
+    productCards.forEach((card, index) => {
+      card.style.setProperty("--card-index", index);
+    });
+  </script>
 </body>
 </html>
