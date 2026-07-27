@@ -366,6 +366,42 @@
       font-weight: 500;
     }
 
+    .size-selector {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 3px;
+      padding: 3px;
+      border: 1px solid rgba(255, 255, 255, .14);
+      border-radius: 7px;
+      background: rgba(16, 31, 24, .36);
+    }
+
+    .size-option {
+      min-height: 38px;
+      padding: 0 10px;
+      border: 0;
+      border-radius: 5px;
+      background: transparent;
+      color: rgba(255, 255, 255, .72);
+      font: inherit;
+      font-size: .72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background .2s ease, color .2s ease, transform .2s ease;
+    }
+
+    .size-option:hover,
+    .size-option:focus-visible {
+      color: var(--white);
+    }
+
+    .size-option.active {
+      background: var(--cream);
+      color: var(--green-900);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, .18);
+    }
+
     .notes {
       max-width: 1180px;
       margin: 0 auto;
@@ -812,6 +848,24 @@
 
         <article class="product">
           <div class="photo">
+            <img class="first" src="https://raw.githubusercontent.com/pomarcosmeticos/imagens/27e61697af36b2c45c5d7ae4e824b906b6c19b30/Cacho%20de%20sabonete%20-%20lavandinha.png" alt="Cacho de sabonetes Pomar Lavandinha" />
+          </div>
+          <div class="body">
+            <span class="tag">Cacho de sabonetes</span>
+            <div class="title-row">
+              <h3>Lavandinha</h3>
+              <span class="price size-price" aria-live="polite">R$ 35,00</span>
+            </div>
+            <p>Cacho decorativo de sabonetes artesanais com aroma de lavandinha.</p>
+            <div class="size-selector" role="group" aria-label="Escolha o tamanho do cacho de sabonetes">
+              <button class="size-option active" type="button" data-price="R$ 35,00" aria-pressed="true">Pequeno</button>
+              <button class="size-option" type="button" data-price="R$ 50,00" aria-pressed="false">Grande</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="product">
+          <div class="photo">
             <img class="first" src="https://raw.githubusercontent.com/pomarcosmeticos/imagens/bc39881451ee5f5312c739b858e3b2c898bb4922/Velas%20ar%C3%B3maticas.png" alt="Velas aromáticas Pomar" />
           </div>
           <div class="body">
@@ -1029,6 +1083,24 @@
 
     productCards.forEach((card, index) => {
       card.style.setProperty("--card-index", index);
+    });
+
+    document.querySelectorAll(".size-selector").forEach((selector) => {
+      const price = selector.closest(".product").querySelector(".size-price");
+      const options = selector.querySelectorAll(".size-option");
+
+      options.forEach((option) => {
+        option.addEventListener("click", () => {
+          options.forEach((item) => {
+            item.classList.remove("active");
+            item.setAttribute("aria-pressed", "false");
+          });
+
+          option.classList.add("active");
+          option.setAttribute("aria-pressed", "true");
+          price.textContent = option.dataset.price;
+        });
+      });
     });
   </script>
 </body>
